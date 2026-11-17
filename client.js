@@ -23010,6 +23010,17 @@ const DIRECTOR_KEY_HELP = [
     }
     function novelFail(e) { toast(hostRpcErrText(e) || '小说后端调用失败'); }
     function novelBooksList(d) { return Array.isArray(d) ? d : ((d && d.items) || []); }
+    /** 后端状态码 → 可读中文（未收录的原样返回，便于排障）。 */
+    const NOVEL_STATUS_LABEL = {
+      scanning: '扫描中', crawling: '抓取中', cancelling: '停止中',
+      completed: '已完成', failed: '失败', empty: '无章节', cancelled: '已停止',
+      interrupted: '已中断', paused: '已暂停', pending: '排队中', running: '进行中',
+      ready: '就绪', success: '已完成', unknown: '未知',
+    };
+    function novelStatusLabel(st) {
+      const k = String(st || '');
+      return NOVEL_STATUS_LABEL[k] || k;
+    }
     // 封面地址清洗：起点给的是协议相对地址（//bookcover.yuewen.com/...），直接塞给 <img> 会 404；
     // 图床又普遍做防盗链，所以统一走宿主的 /api/cover 代理（Referer 由宿主按图床域名补）。
     function novelCoverUrl(u, referer) {
@@ -23098,6 +23109,22 @@ const DIRECTOR_KEY_HELP = [
       try {
         const d = await novelApi('/api/v1/novels', { query: { limit: 200, offset: 0 } });
         const items = novelBooksList(d);
+        // 与后端的「在跑任务表」对账：宿主/后端重启后，DB 里仍留着 status=crawling 的书，
+        // 但在跑任务已经没了 —— 这种书显示成 crawling 会让「继续抓取」看起来不可用。
+        // 只有确实出现在 crawl/status.running 里的书才是真的在抓。
+        let runningIds = null;
+        try {
+          const rs = await novelApi('/api/v1/crawl/status', { timeoutMs: 15000 });
+          const running = (rs && rs.running) || {};
+          runningIds = new Set(Object.keys(running));
+        } catch { runningIds = null; }
+        if (runningIds) {
+          for (const b of items) {
+            if (!b) continue;
+            const st = String(b.status || '');
+            if ((st === 'crawling' || st === 'scanning') && !runningIds.has(String(b.id || ''))) b.status = 'interrupted';
+          }
+        }
         updateNovel((n) => { n.books = items; n.booksTotal = (d && d.total) || items.length; n.booksBusy = false; });
       } catch (e) { updateNovel((n) => { n.booksBusy = false; }); novelFail(e); }
     }
@@ -23736,7 +23763,7 @@ const DIRECTOR_KEY_HELP = [
               },
                 h('div', { className: 'dshic-nv-book-title' }, String((b && b.title) || '(未命名)')),
                 h('div', { className: 'dshic-nv-book-meta' },
-                  [String((b && b.chapters_count) || 0) + ' 章', String((b && b.author) || ''), String((b && b.status) || '')]
+                  [String((b && b.chapters_count) || 0) + ' 章', String((b && b.author) || ''), novelStatusLabel(b && b.status)]
                     .filter(Boolean).join(' · '))))),
             h('div', { className: 'dshic-nv-shelf-foot' },
               h('button', {
@@ -23896,7 +23923,7 @@ const DIRECTOR_KEY_HELP = [
           job ? h('div', { className: 'dshic-nv-card' },
             h('div', { className: 'dshic-nv-card-head' },
               h('span', { className: 'dshic-nv-card-title' }, '抓取任务'),
-              h('span', { className: 'dshic-nv-tag' }, jobSt || 'unknown'),
+              h('span', { className: 'dshic-nv-tag' }, novelStatusLabel(jobSt || 'unknown')),
               h('span', { className: 'dshic-nv-card-hint' }, String(job.title || job.novel_id || '').slice(0, 40)),
               h('span', { className: 'dshic-flex' }),
               running ? h('button', {
@@ -24092,7 +24119,7 @@ const DIRECTOR_KEY_HELP = [
                     },
                   },
                     h('span', { className: 'dshic-nv-jobrow-title' },
-                      String(j.new_title || j.source_title || j.job_id) + ' · ' + String(j.status || '')),
+                      String(j.new_title || j.source_title || j.job_id) + ' · ' + novelStatusLabel(j.status)),
                     h('span', { className: 'dshic-nv-jobrow-pct' }, String(j.progress_pct || 0) + '%'))))
                   : h('div', { className: 'dshic-nv-hint' }, '还没有改写任务'),
                 openJob ? h(NovelJobPanel, { job: openJob }) : null)))));
