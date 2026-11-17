@@ -1,0 +1,14 @@
+# 本地备份 / 构建产物
+*.bak-*
+*.bak
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 运行期数据（数据根目录、导出包、上传包）
+exports/
+imports/
+*.zip
+*.db
+*.sqlite
+*.sqlite3
