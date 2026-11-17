@@ -28835,6 +28835,9 @@ const DIRECTOR_KEY_HELP = [
             assetUrlCache, ASSET_URL_LARGE_BYTES, ASSET_URL_MAX_ENTRIES, ASSET_URL_MAX_BYTES,
             onCanvasPointerMove, onCanvasPointerUp, onNodePointerDown, drag, nodeEls, edgePathEls, flushEdgePaths,
             notifyCount: () => notifyCount, resetNotifyCount: () => { notifyCount = 0; },
+            // 渲染计数（诊断用）：memo 生效时 edgeRender/minimapRender 应远少于 canvasRender
+            renderCounters: () => perfCounters,
+            resetRenderCounters: () => { perfCounters.notify = 0; perfCounters.canvasRender = 0; perfCounters.edgeRender = 0; perfCounters.minimapRender = 0; },
             setCanvasElForTest: (el) => { canvasEl = el; },
             edgePath,
           };
