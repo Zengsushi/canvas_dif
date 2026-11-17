@@ -4031,97 +4031,160 @@ body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 .dshic-apptab.is-active{background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-primary);font-weight:600;
   box-shadow:0 1px 2px rgba(0,0,0,.12);}
 /* —— 小说工作台 —— */
-.dshic-novel{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1,#fff);overflow:hidden;}
-.dshic-novel-head{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--dsw-alias-border-l1);}
-.dshic-novel-tabs{display:flex;align-items:center;gap:4px;}
-.dshic-novel-tab{height:28px;padding:0 12px;border:1px solid transparent;border-radius:8px;background:transparent;
-  color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;}
-.dshic-novel-tab:hover{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-tab.is-active{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600;}
-.dshic-novel-status{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:var(--dsw-alias-label-secondary);}
-.dshic-novel-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#c33;}
-.dshic-novel-dot.is-ok{background:#2ba24c;}
-.dshic-novel-status-text{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dshic-novel-body{flex:1 1 auto;min-height:0;display:flex;overflow:hidden;}
-.dshic-novel-shelf{flex:1 1 auto;display:flex;min-height:0;overflow:hidden;}
-.dshic-novel-side{flex:none;width:280px;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--dsw-alias-border-l1);}
-.dshic-novel-side-bar{flex:none;display:flex;align-items:center;gap:6px;padding:8px;}
-.dshic-novel-side-list{flex:1 1 auto;min-height:0;overflow:auto;padding:0 8px 8px;}
-.dshic-novel-book{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:8px 10px;margin-bottom:4px;
-  border:1px solid transparent;border-radius:9px;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:left;}
-.dshic-novel-book:hover{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-book.is-active{background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-border-l2);}
-.dshic-novel-book-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
-.dshic-novel-book-meta{font-size:11px;color:var(--dsw-alias-label-secondary);}
-.dshic-novel-side-foot{flex:none;padding:8px;border-top:1px solid var(--dsw-alias-border-l1);}
-.dshic-novel-main{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
-.dshic-novel-empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-secondary);font-size:13px;padding:24px;text-align:center;}
-.dshic-novel-import{flex:1 1 auto;display:flex;flex-direction:column;gap:8px;padding:12px;min-height:0;overflow:auto;}
-.dshic-novel-import-row{display:flex;align-items:center;gap:8px;}
-.dshic-novel-textarea{flex:1 1 auto;min-height:200px;resize:vertical;padding:10px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);
-  background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;}
-.dshic-novel-textarea.is-sm{min-height:84px;}
-.dshic-novel-bookview{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-.dshic-novel-bookview-head{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--dsw-alias-border-l1);}
-.dshic-novel-bookview-title{font-size:13px;font-weight:600;}
-.dshic-novel-bookview-body{flex:1 1 auto;min-height:0;display:flex;overflow:hidden;}
-.dshic-novel-chlist{flex:none;width:320px;min-height:0;overflow:auto;border-right:1px solid var(--dsw-alias-border-l1);padding:6px;}
-.dshic-novel-chrow{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:none;border-radius:8px;background:transparent;
-  color:inherit;font:inherit;font-size:12px;cursor:pointer;text-align:left;}
-.dshic-novel-chrow:hover{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-chrow.is-active{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-chidx{flex:none;color:var(--dsw-alias-label-secondary);}
-.dshic-novel-chtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dshic-novel-chmeta{flex:none;color:var(--dsw-alias-label-secondary);font-size:11px;}
-.dshic-novel-read{flex:1 1 auto;min-width:0;min-height:0;overflow:auto;padding:14px 18px;}
-.dshic-novel-read-title{font-size:14px;font-weight:600;margin-bottom:10px;}
-.dshic-novel-read-body{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13px;line-height:1.85;margin:0;color:var(--dsw-alias-label-primary);}
-.dshic-novel-crawl{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:8px;padding:12px;overflow:auto;}
-.dshic-novel-crawl-form,.dshic-novel-crawl-url{display:flex;align-items:center;gap:8px;}
-.dshic-novel-num{max-width:110px;}
-.dshic-novel-jobcard{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-progress{height:6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 12%,transparent);overflow:hidden;}
+/* —— 小说工作台（卡片化重设计：顶部栏 + 分组卡片 + 统一控件） —— */
+.dshic-novel{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--dsw-alias-bg-base,#f6f7f9);color:var(--dsw-alias-label-primary);}
+.dshic-novel *,.dshic-novel *::before,.dshic-novel *::after{box-sizing:border-box;}
+.dshic-novel-head{flex:none;display:flex;align-items:center;gap:16px;padding:9px 18px;
+  background:var(--dsw-alias-bg-layer-1,#fff);border-bottom:1px solid var(--dsw-alias-border-l1);}
+.dshic-nv-headl{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.dshic-novel-title{font-size:13.5px;font-weight:650;letter-spacing:.3px;display:flex;align-items:center;gap:7px;}
+.dshic-novel-title-sub{font-size:11px;color:var(--dsw-alias-label-secondary);}
+.dshic-novel-tabs{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);}
+.dshic-novel-tab{height:26px;padding:0 14px;border:none;border-radius:8px;background:transparent;
+  color:var(--dsw-alias-label-secondary);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;}
+.dshic-novel-tab:hover{color:var(--dsw-alias-label-primary);}
+.dshic-novel-tab.is-active{background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-primary);
+  font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.12);}
+.dshic-novel-status{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:11.5px;
+  color:var(--dsw-alias-label-secondary);min-width:0;}
+.dshic-novel-dot{width:7px;height:7px;border-radius:50%;flex:none;background:#d05a52;
+  box-shadow:0 0 0 3px color-mix(in srgb,#d05a52 16%,transparent);}
+.dshic-novel-dot.is-ok{background:#2ba24c;box-shadow:0 0 0 3px color-mix(in srgb,#2ba24c 16%,transparent);}
+.dshic-novel-status-text{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dshic-novel-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:auto;padding:16px 18px 26px;}
+.dshic-novel-body.is-flush{overflow:hidden;padding-bottom:16px;}
+.dshic-novel-col{display:flex;flex-direction:column;gap:14px;width:100%;max-width:1180px;margin:0 auto;}
+.dshic-novel-empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:36px 24px;
+  color:var(--dsw-alias-label-secondary);font-size:12.5px;text-align:center;line-height:1.7;}
+.dshic-nv-card{background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l1);
+  border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.04);overflow:hidden;flex:none;}
+.dshic-nv-card.is-grow{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+.dshic-nv-card-head{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--dsw-alias-border-l1);}
+.dshic-nv-card-title{font-size:12.5px;font-weight:650;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.dshic-nv-card-hint{font-size:11.5px;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-card-body{display:flex;flex-direction:column;gap:11px;padding:13px 14px;}
+.dshic-nv-card-body.is-flush{padding:0;}
+.dshic-nv-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.dshic-nv-row.is-tight{gap:6px;}
+.dshic-nv-hint{font-size:11.5px;color:var(--dsw-alias-label-secondary);line-height:1.55;}
+.dshic-nv-sep{width:1px;height:16px;background:var(--dsw-alias-border-l1);flex:none;}
+.dshic-nv-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;padding:0 14px;
+  border:1px solid var(--dsw-alias-border-l2);border-radius:9px;background:var(--dsw-alias-bg-layer-1);
+  color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;}
+.dshic-nv-btn:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary);}
+.dshic-nv-btn:disabled{opacity:.5;cursor:default;}
+.dshic-nv-btn.is-primary{background:var(--dsw-alias-brand-primary);border-color:transparent;color:#fff;font-weight:600;}
+.dshic-nv-btn.is-primary:hover{filter:brightness(1.06);color:#fff;}
+.dshic-nv-btn.is-ghost{border-color:transparent;background:transparent;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-btn.is-ghost:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);}
+.dshic-nv-btn.is-danger:hover{border-color:#c0423b;color:#c0423b;}
+.dshic-nv-btn.is-sm{height:26px;padding:0 10px;font-size:12px;border-radius:8px;}
+.dshic-nv-input{flex:1 1 auto;min-width:0;height:32px;padding:0 12px;border-radius:9px;
+  border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);
+  color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;}
+.dshic-nv-input::placeholder{color:var(--dsw-alias-label-secondary);}
+.dshic-nv-input:focus{outline:none;border-color:var(--dsw-alias-brand-primary);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);}
+.dshic-nv-input.is-num{flex:none;width:96px;text-align:center;padding:0 8px;}
+select.dshic-nv-input{flex:none;width:auto;min-width:170px;padding-right:8px;cursor:pointer;}
+.dshic-nv-textarea{width:100%;min-height:150px;resize:vertical;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);
+  color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.65;}
+.dshic-nv-textarea.is-sm{min-height:78px;}
+.dshic-nv-textarea:focus{outline:none;border-color:var(--dsw-alias-brand-primary);}
+.dshic-nv-field{display:flex;flex-direction:column;gap:5px;min-width:120px;}
+.dshic-nv-field .dshic-nv-input{width:100%;height:30px;}
+.dshic-nv-label{font-size:11.5px;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+.dshic-nv-searchrow{display:flex;align-items:center;gap:9px;}
+.dshic-nv-chiprow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.dshic-nv-chip{display:inline-flex;align-items:center;gap:6px;height:27px;padding:0 12px;border-radius:999px;
+  border:1px solid var(--dsw-alias-border-l1);background:transparent;color:var(--dsw-alias-label-secondary);
+  font:inherit;font-size:12px;cursor:pointer;}
+.dshic-nv-chip:hover{border-color:var(--dsw-alias-border-l2);color:var(--dsw-alias-label-primary);}
+.dshic-nv-chip.is-on{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 14%,transparent);
+  border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);color:var(--dsw-alias-label-primary);font-weight:600;}
+.dshic-nv-chipdot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-label-secondary);flex:none;}
+.dshic-nv-chip.is-on .dshic-nv-chipdot{background:var(--dsw-alias-brand-primary);}
+.dshic-nv-statusrow{display:flex;flex-wrap:wrap;gap:7px;}
+.dshic-site-stat{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;
+  font-size:11px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);}
+.dshic-site-stat-ok,.dshic-site-stat-success{color:#1f8b4c;background:color-mix(in srgb,#2ba24c 12%,transparent);}
+.dshic-site-stat-timeout,.dshic-site-stat-empty{color:#a2701f;background:color-mix(in srgb,#c08a2e 14%,transparent);}
+.dshic-site-stat-error,.dshic-site-stat-unsupported{color:#b23a33;background:color-mix(in srgb,#c0423b 12%,transparent);}
+.dshic-nv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(298px,1fr));gap:10px;}
+.dshic-nv-item{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;
+  border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);transition:border-color .12s;}
+.dshic-nv-item:hover{border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 55%,transparent);}
+.dshic-nv-item-top{display:flex;align-items:center;gap:7px;}
+.dshic-nv-item-badge{flex:none;padding:1px 7px;border-radius:6px;font-size:10.5px;
+  background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);}
+.dshic-nv-item-title{font-size:12.5px;font-weight:600;line-height:1.45;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.dshic-nv-item-meta{font-size:11px;color:var(--dsw-alias-label-secondary);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.dshic-nv-item-foot{display:flex;align-items:center;gap:7px;margin-top:2px;}
+.dshic-nv-task{display:flex;flex-direction:column;gap:9px;}
+.dshic-nv-task-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;font-weight:600;}
+.dshic-nv-pbar{height:6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);overflow:hidden;}
+.dshic-nv-pbar-fill{height:100%;border-radius:999px;background:var(--dsw-alias-brand-primary);transition:width .3s;}
+.dshic-novel-progress{height:6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);overflow:hidden;}
 .dshic-novel-progress-fill{height:100%;background:var(--dsw-alias-brand-primary);transition:width .3s;}
-.dshic-novel-results{display:flex;flex-direction:column;gap:4px;}
-.dshic-novel-result{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:12px;}
-.dshic-novel-result:hover{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-sites{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.dshic-site-chip{border:1px solid var(--dsw-alias-border-l1);background:transparent;color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:11px;cursor:pointer;}
-.dshic-site-chip.is-on{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary);}
-.dshic-novel-status{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;}
-.dshic-site-stat{padding:1px 8px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);}
-.dshic-site-stat-ok,.dshic-site-stat-success{color:#2f9e5e;}
-.dshic-site-stat-timeout,.dshic-site-stat-empty{color:#c08a2e;}
-.dshic-site-stat-error,.dshic-site-stat-unsupported{color:#c0423b;}
-.dshic-novel-browse{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.dshic-novel-select{max-width:180px;}
-.dshic-novel-errs{display:flex;flex-direction:column;gap:2px;max-height:90px;overflow:auto;}
-.dshic-novel-result-site{flex:none;min-width:64px;color:var(--dsw-alias-label-secondary);}
-.dshic-novel-result-title{font-weight:600;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dshic-novel-result-meta{color:var(--dsw-alias-label-secondary);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dshic-novel-rw{flex:1 1 auto;min-height:0;display:flex;overflow:hidden;}
-.dshic-novel-rw-left{flex:1 1 auto;min-width:0;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
-.dshic-novel-rw-card{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;}
-.dshic-novel-rw-title{font-size:13px;font-weight:600;}
-.dshic-novel-rw-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.dshic-novel-numwrap{display:flex;align-items:center;gap:6px;}
-.dshic-novel-rw-right{flex:none;width:420px;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l1);overflow:auto;}
-.dshic-novel-rw-bar{flex:none;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--dsw-alias-border-l1);}
-.dshic-novel-jobrow{display:flex;align-items:center;gap:8px;padding:7px 12px;border:none;background:transparent;color:inherit;
-  font:inherit;font-size:12px;cursor:pointer;text-align:left;}
-.dshic-novel-jobrow:hover{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-jobrow.is-active{background:var(--dsw-alias-bg-layer-2);}
-.dshic-novel-jobrow-pct{flex:none;margin-left:auto;color:var(--dsw-alias-label-secondary);}
-.dshic-novel-jobpanel{display:flex;flex-direction:column;gap:8px;padding:10px 12px;}
-.dshic-novel-jobpanel-head{display:flex;align-items:center;gap:8px;font-size:12px;}
-.dshic-novel-difflist{display:flex;flex-direction:column;gap:2px;}
-.dshic-novel-diffrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--dsw-alias-border-l1);}
-.dshic-novel-tag{flex:none;padding:1px 6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);
-  color:var(--dsw-alias-brand-primary);font-size:11px;}
-.dshic-novel-diffone{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
-.dshic-novel-diffone-title{font-size:12px;font-weight:600;}
-.dshic-novel-diffone-body{max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:inherit;font-size:12px;
-  line-height:1.7;margin:0;padding:10px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);}
+.dshic-nv-errs{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow:auto;padding:8px 10px;
+  border-radius:10px;background:color-mix(in srgb,#c0423b 8%,transparent);}
+.dshic-novel-errs{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow:auto;}
+.dshic-nv-shelf{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:296px minmax(0,1fr);gap:14px;}
+.dshic-nv-shelf-search{flex:none;padding:10px 12px 0;}
+.dshic-nv-shelf-list{flex:1 1 auto;min-height:0;overflow:auto;padding:8px 10px;}
+.dshic-nv-shelf-foot{flex:none;padding:10px 12px;border-top:1px solid var(--dsw-alias-border-l1);}
+.dshic-nv-book{display:flex;flex-direction:column;gap:3px;width:100%;padding:9px 11px;margin-bottom:3px;
+  border:1px solid transparent;border-radius:10px;background:transparent;color:inherit;font:inherit;
+  cursor:pointer;text-align:left;}
+.dshic-nv-book:hover{background:var(--dsw-alias-bg-layer-2);}
+.dshic-nv-book.is-active{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);
+  border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);}
+.dshic-nv-book-title{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.dshic-nv-book-meta{font-size:11px;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-bookview{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+.dshic-nv-bookview-head{flex:none;display:flex;align-items:center;gap:8px;padding:11px 14px;
+  border-bottom:1px solid var(--dsw-alias-border-l1);flex-wrap:wrap;}
+.dshic-nv-bookview-title{font-size:13px;font-weight:650;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dshic-nv-bookview-body{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr);}
+.dshic-nv-chlist{min-height:0;overflow:auto;border-right:1px solid var(--dsw-alias-border-l1);padding:6px;}
+.dshic-nv-ch{display:flex;align-items:center;gap:8px;width:100%;padding:6px 9px;border:none;border-radius:8px;
+  background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer;text-align:left;}
+.dshic-nv-ch:hover{background:var(--dsw-alias-bg-layer-2);}
+.dshic-nv-ch.is-active{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);}
+.dshic-nv-ch-idx{flex:none;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;}
+.dshic-nv-ch-title{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dshic-nv-ch-meta{flex:none;font-size:10.5px;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-read{min-width:0;min-height:0;overflow:auto;padding:20px 26px 40px;}
+.dshic-nv-read-inner{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.dshic-nv-read-title{font-size:15px;font-weight:650;line-height:1.5;}
+.dshic-nv-read-body{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13.5px;
+  line-height:1.95;margin:0;color:var(--dsw-alias-label-primary);}
+.dshic-nv-rw{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}
+.dshic-nv-rw-col{min-height:0;display:flex;flex-direction:column;gap:14px;overflow:auto;padding-right:2px;}
+.dshic-nv-joblist{display:flex;flex-direction:column;gap:2px;padding:6px;}
+.dshic-nv-jobrow{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:1px solid transparent;
+  border-radius:9px;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer;text-align:left;}
+.dshic-nv-jobrow:hover{background:var(--dsw-alias-bg-layer-2);}
+.dshic-nv-jobrow.is-active{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);
+  border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 45%,transparent);}
+.dshic-nv-jobrow-title{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dshic-nv-jobrow-pct{flex:none;font-size:11px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;}
+.dshic-nv-jobpanel{display:flex;flex-direction:column;gap:10px;padding:13px 14px;}
+.dshic-nv-jobpanel-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;font-weight:600;}
+.dshic-nv-difflist{display:flex;flex-direction:column;gap:1px;}
+.dshic-nv-diffrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;
+  border-bottom:1px dashed var(--dsw-alias-border-l1);}
+.dshic-nv-tag{flex:none;padding:1px 7px;border-radius:999px;font-size:10.5px;
+  background:color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);color:var(--dsw-alias-brand-primary);}
+.dshic-nv-diffone{display:flex;flex-direction:column;gap:6px;}
+.dshic-nv-diffone-body{max-height:380px;overflow:auto;white-space:pre-wrap;word-break:break-word;
+  font:inherit;font-size:12px;line-height:1.75;margin:0;padding:11px 13px;border-radius:10px;
+  background:var(--dsw-alias-bg-layer-2);}
 /* —— 会话↔画布绑定（composer 画布选择 chip）：与宿主会话输入行 chip 同一视觉语言 —— */
 .dshic-bind{position:relative;display:inline-flex;align-items:center;gap:2px;flex:0 1 auto;min-width:0;max-width:180px;}
 .dshic-bind-chip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:10px;border:1px solid transparent;
@@ -22678,7 +22741,16 @@ const DIRECTOR_KEY_HELP = [
     function updateNovel(fn) { update((s) => { s.novel = s.novel || { tab: 'shelf' }; fn(s.novel); }); }
     function novelApi(path, opts) {
       const o = opts || {};
-      return hostRpc('novelApi', { path: path, method: o.method || 'GET', query: o.query, body: o.body, timeoutMs: o.timeoutMs || 180000 });
+      return hostRpc('novelApi', { path: path, method: o.method || 'GET', query: o.query, body: o.body, timeoutMs: o.timeoutMs || 180000 })
+        .then((r) => {
+          // Host 代理把 dif_base 的信封 {code,message,data} 拆成 {ok,status,data}：这里必须再剥一层。
+          // 少了这层，调用方拿到的是信封对象（站点/书架/分类/搜索结果因此全为空）。
+          if (r && typeof r === 'object' && !Array.isArray(r) && typeof r.ok === 'boolean' && typeof r.status === 'number') {
+            if (r.ok === false) throw new Error(String(r.error || r.message || ('小说后端 ' + String(r.status) + ' 调用失败')));
+            return r.data;
+          }
+          return r;
+        });
     }
     function novelFail(e) { toast(hostRpcErrText(e) || '小说后端调用失败'); }
     function novelBooksList(d) { return Array.isArray(d) ? d : ((d && d.items) || []); }
@@ -22703,13 +22775,21 @@ const DIRECTOR_KEY_HELP = [
     }
     function novelBootstrap() {
       const nv = S.novel || {};
-      if (nv.loaded && !nv.statusBusy) { novelLoadJobs(); return; }
+      if (nv.loaded && !nv.statusBusy) {
+        if (!(nv.sites && nv.sites.length)) novelLoadSites();
+        if (!(nv.books && nv.books.length)) novelLoadBooks();
+        novelLoadJobs();
+        return;
+      }
       updateNovel((n) => { n.loaded = true; });
       novelRefreshStatus().then(() => {
         novelLoadBooks();
         novelLoadJobs();
         novelResumeRunning();
-        novelLoadSites().then(() => { if (!(S.novel && (S.novel.categories || []).length)) novelLoadCategories(''); }).catch(() => {});
+        novelLoadSites().then(() => {
+          const dom = novelSiteDomains()[0] || '';
+          if (dom && !(S.novel && (S.novel.categories || []).length)) novelLoadCategories(dom);
+        }).catch(() => {});
       });
     }
 
@@ -22787,8 +22867,13 @@ const DIRECTOR_KEY_HELP = [
     async function novelLoadSites() {
       try {
         const d = await novelApi('/api/v1/novels/sites');
-        updateNovel((n) => { n.sites = Array.isArray(d) ? d : ((d && d.items) || []); });
-      } catch { /* 站点表拉不到不影响搜索 */ }
+        const list = Array.isArray(d) ? d : ((d && d.items) || []);
+        updateNovel((n) => { n.sites = list; n.sitesError = null; });
+        if (list.length && !NOVEL_SCRATCH.browseSite) NOVEL_SCRATCH.browseSite = String(list[0].domain || '');
+      } catch (e) {
+        // 站点表拉不到不影响 URL 直抓，但要让用户看见原因（此前静默吞掉，页面表现为「没有任何站点」）。
+        updateNovel((n) => { n.sitesError = String((e && e.message) || e); });
+      }
     }
     async function novelSearch() {
       const q = String(NOVEL_SCRATCH.searchQ || '').trim();
@@ -23029,38 +23114,43 @@ const DIRECTOR_KEY_HELP = [
       const nv = S.novel || {};
       const st = nv.status;
       const ok = !!(st && st.ok);
-      const txt = st
-        ? (ok
-          ? ('已连接 · v' + String((st.health && st.health.version) || '?') + ' · ' + String(st.base || ''))
-          : ('未连接：' + String(st.error || st.base || '')))
-        : '探测中…';
+      const txt = nv.statusBusy && !st
+        ? '正在探测后端…'
+        : (ok
+          ? ('已连接 v' + String((st.health && st.health.version) || '?') + ' · ' + String(st.base || ''))
+          : ('未连接：' + String((st && (st.error || st.base)) || 'dif_base 未启动')));
       return h('div', { className: 'dshic-novel-status' },
         h('span', { className: cls('dshic-novel-dot', ok && 'is-ok') }),
         h('span', { className: 'dshic-novel-status-text', title: txt }, txt),
-        ok ? null : h('button', { type: 'button', className: 'dshic-mini', onClick: novelLaunchBackend }, '一键启动后端'),
-        h('button', { type: 'button', className: 'dshic-mini', onClick: () => { novelRefreshStatus().then(() => novelLoadBooks()); } }, '重新探测'));
+        ok ? null : h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: novelLaunchBackend }, '启动后端'),
+        h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => { novelRefreshStatus().then(() => { novelLoadBooks(); novelLoadSites(); }); } }, '重新探测'));
     }
 
     function NovelImportBox() {
       const nv = S.novel || {};
-      return h('div', { className: 'dshic-novel-import' },
-        h('div', { className: 'dshic-novel-import-row' },
-          h('span', { className: 'dshic-hint' }, '书名'),
-          h('input', {
-            className: 'dshic-input', defaultValue: NOVEL_SCRATCH.importTitle, placeholder: '例如：神女图',
-            onInput: (e) => { NOVEL_SCRATCH.importTitle = e.target.value; },
-          })),
-        h('textarea', {
-          className: 'dshic-novel-textarea', defaultValue: NOVEL_SCRATCH.importText,
-          placeholder: '粘贴全书正文（支持「第1章 …」分章；纯文本即可）',
-          onInput: (e) => { NOVEL_SCRATCH.importText = e.target.value; },
-        }),
-        h('div', { className: 'dshic-novel-import-row' },
-          h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.importBusy, onClick: novelImportTxt },
-            nv.importBusy ? '导入中…' : '导入'),
-          h('button', { type: 'button', className: 'dshic-mini', onClick: () => updateNovel((n) => { n.importOpen = false; }) }, '取消')));
+      return h('div', { className: 'dshic-nv-card is-grow' },
+        h('div', { className: 'dshic-nv-card-head' },
+          h('span', { className: 'dshic-nv-card-title' }, '导入 TXT'),
+          h('span', { className: 'dshic-nv-card-hint' }, '支持「第1章 …」自动分章'),
+          h('span', { className: 'dshic-flex' }),
+          h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => updateNovel((n) => { n.importOpen = false; }) }, '关闭')),
+        h('div', { className: 'dshic-nv-card-body' },
+          h('div', { className: 'dshic-nv-field' },
+            h('span', { className: 'dshic-nv-label' }, '书名'),
+            h('input', {
+              className: 'dshic-nv-input', defaultValue: NOVEL_SCRATCH.importTitle, placeholder: '例如：神女图',
+              onInput: (e) => { NOVEL_SCRATCH.importTitle = e.target.value; },
+            })),
+          h('textarea', {
+            className: 'dshic-nv-textarea', defaultValue: NOVEL_SCRATCH.importText,
+            placeholder: '粘贴全书正文（纯文本即可）',
+            style: { flex: '1 1 auto', minHeight: '220px' },
+            onInput: (e) => { NOVEL_SCRATCH.importText = e.target.value; },
+          }),
+          h('div', { className: 'dshic-nv-row' },
+            h('button', { type: 'button', className: 'dshic-nv-btn is-primary', disabled: !!nv.importBusy, onClick: novelImportTxt },
+              nv.importBusy ? '导入中…' : '导入到书架'))));
     }
-
     // ── 小说章节 → 画布剧本节点：「小说」页与「画布」页之间的桥 ────────────
     // 采集/导入的章节正文在这里转成剧本节点：默认只写创作意图（idea），点节点「生成」即由模型改编成
     // 【场N】分场剧本；raw=true 时把原文直接写进成稿区（不调模型，适合已经分好场的文本）。
@@ -23140,204 +23230,284 @@ const DIRECTOR_KEY_HELP = [
       const chapters = nv.chapters || [];
       const reading = nv.reading;
       const pushBusy = !!nv.pushBusy;
-      return h('div', { className: 'dshic-novel-bookview' },
-        h('div', { className: 'dshic-novel-bookview-head' },
-          h('span', { className: 'dshic-novel-bookview-title' }, (b && b.title) || ''),
-          h('span', { className: 'dshic-hint' }, (nv.chapTotal || chapters.length) + ' 章'),
+      const total = Number(nv.chapTotal || chapters.length || 0);
+      return h('div', { className: 'dshic-nv-card is-grow', 'data-role': 'novel-book' },
+        h('div', { className: 'dshic-nv-card-head' },
+          h('span', { className: 'dshic-nv-card-title', title: String((b && b.title) || '') }, String((b && b.title) || '(未命名)')),
+          h('span', { className: 'dshic-nv-card-hint' }, total + ' 章' + ((b && b.author) ? ' · ' + String(b.author) : '')),
           h('span', { className: 'dshic-flex' }),
-          h('button', { type: 'button', className: 'dshic-mini', disabled: pushBusy, title: T('novelToScriptHint'), onClick: () => novelWriteAllChapters() }, pushBusy ? '写入中…' : T('novelToScriptAll')),
-          h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelExport(id, b && b.title) }, '导出 TXT'),
-          h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelDeleteBook(id, b && b.title) }, '删除')),
-        h('div', { className: 'dshic-novel-bookview-body' },
-          h('div', { className: 'dshic-novel-chlist' },
-            nv.chapBusy ? h('div', { className: 'dshic-hint' }, '加载中…') : null,
+          h('button', {
+            type: 'button', className: 'dshic-nv-btn is-sm is-primary', disabled: pushBusy,
+            title: T('novelToScriptHint'), onClick: () => novelWriteAllChapters(),
+          }, pushBusy ? '写入中…' : T('novelToScriptAll')),
+          h('button', { type: 'button', className: 'dshic-nv-btn is-sm', onClick: () => novelExport(id, b && b.title) }, '导出 TXT'),
+          h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-danger', onClick: () => novelDeleteBook(id, b && b.title) }, '删除')),
+        h('div', { className: 'dshic-nv-bookview-body' },
+          h('div', { className: 'dshic-nv-chlist' },
+            nv.chapBusy ? h('div', { className: 'dshic-nv-hint', style: { padding: '8px' } }, '加载中…') : null,
             chapters.map((c) => h('button', {
               key: c.id, type: 'button',
-              className: cls('dshic-novel-chrow', reading && reading.id === c.id && 'is-active'),
+              className: cls('dshic-nv-ch', reading && reading.id === c.id && 'is-active'),
               onClick: () => novelReadChapter(id, c),
             },
-              h('span', { className: 'dshic-novel-chidx' }, '第' + c.idx + '章'),
-              h('span', { className: 'dshic-novel-chtitle' }, c.title || ''),
-              h('span', { className: 'dshic-novel-chmeta' }, (c.word_count || 0) + '字')))),
-          h('div', { className: 'dshic-novel-read' },
-            reading
-              ? [
-                h('div', { key: 'bar', style: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 } },
-                  h('span', { key: 't', className: 'dshic-novel-read-title', style: { margin: 0 } }, reading.title || ''),
-                  h('span', { key: 'f', className: 'dshic-flex' }),
-                  h('button', { key: 'a', type: 'button', className: 'dshic-mini', disabled: pushBusy || reading.busy, title: T('novelToScriptHint'), onClick: () => novelWriteOneChapter(false) }, T('novelToScript')),
-                  h('button', { key: 'r', type: 'button', className: 'dshic-mini', disabled: pushBusy || reading.busy, title: T('novelToScriptRawHint'), onClick: () => novelWriteOneChapter(true) }, T('novelToScriptRaw'))),
-                reading.busy
-                  ? h('div', { key: 'b', className: 'dshic-hint' }, '加载正文…')
-                  : h('pre', { key: 'c', className: 'dshic-novel-read-body' }, reading.content || '(空)'),
-              ]
-              : h('div', { className: 'dshic-hint' }, '点击左侧章节阅读正文'))));
+              h('span', { className: 'dshic-nv-ch-idx' }, '第' + String(c.idx) + '章'),
+              h('span', { className: 'dshic-nv-ch-title', title: String(c.title || '') }, String(c.title || '')),
+              h('span', { className: 'dshic-nv-ch-meta' },
+                String(c.word_count || 0) + ' 字'
+                + ((c.crawl_status && String(c.crawl_status) !== 'completed') ? ' · ' + String(c.crawl_status) : '')))),
+            (total > chapters.length)
+              ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelOpenBook(id) }, '重新加载章节')
+              : null),
+          h('div', { className: 'dshic-nv-read' },
+            h('div', { className: 'dshic-nv-read-inner' },
+              !reading
+                ? h('div', { className: 'dshic-novel-empty' }, '点击左侧章节阅读正文')
+                : h('div', {},
+                  h('div', { className: 'dshic-nv-row is-tight' },
+                    h('span', { className: 'dshic-nv-read-title' }, String(reading.title || '')),
+                    h('span', { className: 'dshic-flex' }),
+                    h('button', {
+                      type: 'button', className: 'dshic-nv-btn is-sm', disabled: pushBusy || !!reading.busy,
+                      title: T('novelToScriptHint'), onClick: () => novelWriteOneChapter(false),
+                    }, T('novelToScript')),
+                    h('button', {
+                      type: 'button', className: 'dshic-nv-btn is-sm', disabled: pushBusy || !!reading.busy,
+                      title: T('novelToScriptRawHint'), onClick: () => novelWriteOneChapter(true),
+                    }, T('novelToScriptRaw'))),
+                  reading.busy
+                    ? h('div', { className: 'dshic-nv-hint' }, '加载正文…')
+                    : h('pre', { className: 'dshic-nv-read-body' }, String(reading.content || '（空）')))))));
     }
 
     function NovelShelfTab() {
       const nv = S.novel || {};
       const books = nv.books || [];
       const q = String(NOVEL_SCRATCH.bookFilter || '').trim().toLowerCase();
-      const shown = q ? books.filter((b) => String(b.title || '').toLowerCase().indexOf(q) >= 0) : books;
-      return h('div', { className: 'dshic-novel-shelf' },
-        h('div', { className: 'dshic-novel-side' },
-          h('div', { className: 'dshic-novel-side-bar' },
-            h('input', {
-              className: 'dshic-input', type: 'search', placeholder: '搜索书名', defaultValue: NOVEL_SCRATCH.bookFilter,
-              onInput: (e) => { NOVEL_SCRATCH.bookFilter = e.target.value; notify(); },
-            }),
-            h('button', { type: 'button', className: 'dshic-mini', title: '刷新书架', onClick: () => novelLoadBooks() }, '刷新')),
-          h('div', { className: 'dshic-novel-side-list' },
-            nv.booksBusy ? h('div', { className: 'dshic-hint' }, '加载中…') : null,
-            (!nv.booksBusy && !shown.length)
-              ? h('div', { className: 'dshic-hint' }, '书架为空：去「爬取」抓取，或点下面「导入 TXT」。')
-              : null,
-            shown.map((b) => h('button', {
-              key: b.id, type: 'button',
-              className: cls('dshic-novel-book', nv.openId === b.id && 'is-active'),
-              onClick: () => novelOpenBook(b.id),
-            },
-              h('span', { className: 'dshic-novel-book-title' }, b.title || '(未命名)'),
-              h('span', { className: 'dshic-novel-book-meta' }, (b.chapters_count || 0) + ' 章 · ' + String(b.status || ''))))),
-          h('div', { className: 'dshic-novel-side-foot' },
-            h('button', { type: 'button', className: 'dshic-mini', onClick: () => updateNovel((n) => { n.importOpen = !n.importOpen; }) }, '导入 TXT'))),
-        h('div', { className: 'dshic-novel-main' },
-          nv.importOpen
-            ? h(NovelImportBox)
-            : (nv.openId
-              ? h(NovelBookView, { id: nv.openId })
-              : h('div', { className: 'dshic-novel-empty' }, '选择左侧小说查看章节；或去「爬取」抓一本、点「导入 TXT」贴一本。'))));
+      const shown = q ? books.filter((b) => String((b && b.title) || '').toLowerCase().indexOf(q) >= 0) : books;
+      const right = nv.importOpen
+        ? h(NovelImportBox)
+        : (nv.openId
+          ? h(NovelBookView, { id: nv.openId })
+          : h('div', { className: 'dshic-nv-card is-grow' },
+            h('div', { className: 'dshic-novel-empty' }, '从左侧选一本小说开始阅读；章节正文可一键转成画布剧本节点。')));
+      return h('div', { className: 'dshic-novel-body is-flush' },
+        h('div', { className: 'dshic-nv-shelf' },
+          h('div', { className: 'dshic-nv-card', style: { flex: '0 0 300px' } },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, T('novelTabShelf')),
+              h('span', { className: 'dshic-nv-card-hint' }, String(books.length) + ' 本'),
+              h('span', { className: 'dshic-flex' }),
+              h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelLoadBooks() }, '刷新')),
+            h('div', { className: 'dshic-nv-shelf-search' },
+              h('input', {
+                className: 'dshic-nv-input', type: 'search', placeholder: '搜索书名',
+                defaultValue: NOVEL_SCRATCH.bookFilter,
+                onInput: (e) => { NOVEL_SCRATCH.bookFilter = e.target.value; notify(); },
+              })),
+            h('div', { className: 'dshic-nv-shelf-list' },
+              nv.booksBusy ? h('div', { className: 'dshic-nv-hint', style: { padding: '10px' } }, '加载中…') : null,
+              (!nv.booksBusy && !shown.length)
+                ? h('div', { className: 'dshic-nv-hint', style: { padding: '10px' } }, '书架为空：去「爬取」抓一本，或导入 TXT。')
+                : null,
+              shown.map((b) => h('div', {
+                key: b.id, className: cls('dshic-nv-book', nv.openId === b.id && 'is-active'),
+                onClick: () => { updateNovel((n) => { n.importOpen = false; }); novelOpenBook(b.id); },
+              },
+                h('div', { className: 'dshic-nv-book-title' }, String((b && b.title) || '(未命名)')),
+                h('div', { className: 'dshic-nv-book-meta' },
+                  [String((b && b.chapters_count) || 0) + ' 章', String((b && b.author) || ''), String((b && b.status) || '')]
+                    .filter(Boolean).join(' · '))))),
+            h('div', { className: 'dshic-nv-shelf-foot' },
+              h('button', {
+                type: 'button', className: cls('dshic-nv-btn', 'is-sm', nv.importOpen && 'is-primary'),
+                onClick: () => updateNovel((n) => { n.importOpen = !n.importOpen; }),
+              }, nv.importOpen ? '收起导入' : '导入 TXT'))),
+          right));
     }
-
     function NovelCrawlTab() {
       const nv = S.novel || {};
       const sites = nv.sites || [];
       const meta = nv.searchMeta;
       const job = nv.crawlJob;
       const jobSt = String((job && job.status) || '');
-      const pct = job && job.total ? Math.min(100, Math.round(((job.current || 0) / job.total) * 100)) : 0;
       const running = ['scanning', 'crawling', 'cancelling'].indexOf(jobSt) >= 0;
+      const total = Number((job && job.total) || 0);
+      const cur = Number((job && job.current) || 0);
+      const pct = total ? Math.min(100, Math.round((cur / total) * 100)) : 0;
       const sel = novelSelectedSites();
       const cats = nv.categories || [];
-      const browseItems = nv.browseItems || [];
+      const browse = nv.browseItems || [];
+      const results = nv.searchResults || [];
       const perSite = (meta && meta.per_site_status) || [];
       const errs = (job && Array.isArray(job.errors)) ? job.errors : [];
       const proxy = nv.proxy;
-      const statLine = (s) => {
-        const st = String(s.status || '');
-        const head = String(s.name || s.domain || '');
-        const body = (st === 'ok' || st === 'success') ? (String(s.count || 0) + ' 条') : String(s.message || st || '');
-        const secs = s.elapsed_ms ? ' · ' + String(Math.round(Number(s.elapsed_ms) / 100) / 10) + 's' : '';
-        return head + '：' + body + secs;
+      useEffect(() => {
+        if (!(((S.novel && S.novel.sites) || []).length)) novelLoadSites();
+        if (!(((S.novel && S.novel.categories) || []).length)) novelLoadCategories(NOVEL_SCRATCH.browseSite || '');
+        return undefined;
+      }, []);
+      const nameOf = (dom) => {
+        const hit = sites.filter((s) => String((s && s.domain) || '') === String(dom))[0];
+        return String((hit && hit.name) || dom || '站点');
       };
-      const rows = (nv.searchResults || []).concat(browseItems);
-      return h('div', { className: 'dshic-novel-crawl' },
-        h('div', { className: 'dshic-novel-sites' },
-          h('span', { className: 'dshic-hint' }, '搜索站点'),
-          sites.map((s) => {
-            const dom = String(s.domain || '');
-            const on = sel.indexOf(dom) >= 0;
-            return h('button', {
-              key: 'site-' + dom, type: 'button', title: String(s.reason || ''),
-              className: 'dshic-site-chip' + (on ? ' is-on' : ''),
-              onClick: () => novelToggleSite(dom),
-            }, String(s.name || dom));
-          }),
+      const pickCard = (r, k) => h('div', { key: k, className: 'dshic-nv-item' },
+        h('div', { className: 'dshic-nv-item-top' },
+          h('span', { className: 'dshic-nv-item-badge' }, String(r.source_site || r.site_domain || '站点')),
+          h('span', { className: 'dshic-nv-hint' }, String(r.author || ''))),
+        h('div', { className: 'dshic-nv-item-title', title: String(r.title || '') }, String(r.title || '（无标题）')),
+        h('div', { className: 'dshic-nv-item-meta' },
+          [String(r.category || ''), (r.word_count ? String(r.word_count) + ' 字' : ''), String(r.status || '')].filter(Boolean).join(' · ')),
+        h('div', { className: 'dshic-nv-item-foot' },
+          h('span', { className: 'dshic-nv-hint' }, String(r.url || '')),
           h('span', { className: 'dshic-flex' }),
-          h('button', { type: 'button', className: 'dshic-mini', onClick: novelProxyStats }, '代理池')),
-        h('div', { className: 'dshic-novel-crawl-form' },
-          h('input', {
-            className: 'dshic-input', type: 'search', placeholder: '关键词（只搜勾选站点；番茄约 30-45s，其余数秒）',
-            defaultValue: NOVEL_SCRATCH.searchQ,
-            onInput: (e) => { NOVEL_SCRATCH.searchQ = e.target.value; },
-            onKeyDown: (e) => { if (e.key === 'Enter') novelSearch(); },
-          }),
-          h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.searchBusy, onClick: novelSearch },
-            nv.searchBusy ? '搜索中…' : '搜索')),
-        perSite.length
-          ? h('div', { className: 'dshic-novel-status' },
-            perSite.map((s) => h('span', {
-              key: 'st-' + String(s.domain || s.name), title: String(s.message || ''),
-              className: 'dshic-site-stat dshic-site-stat-' + String(s.status || ''),
-            }, statLine(s))))
-          : null,
-        proxy
-          ? h('div', { className: 'dshic-hint' },
-            '代理池：共 ' + String(proxy.total != null ? proxy.total : (proxy.size != null ? proxy.size : '?')) +
-            ' · 可用 ' + String(proxy.alive != null ? proxy.alive : (proxy.available != null ? proxy.available : '?')) + ' ',
-            h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.proxyBusy, onClick: novelProxyRefresh },
-              nv.proxyBusy ? '刷新中…' : '刷新代理'))
-          : null,
-        h('div', { className: 'dshic-novel-browse' },
-          h('span', { className: 'dshic-hint' }, '分类浏览'),
-          h('select', {
-            className: 'dshic-input dshic-novel-select', defaultValue: NOVEL_SCRATCH.browseSite || '',
-            onChange: (e) => { novelLoadCategories(e.target.value); },
-          }, sites.map((s) => h('option', { key: 'bs-' + String(s.domain), value: String(s.domain || '') }, String(s.name || s.domain || '')))),
-          h('select', {
-            className: 'dshic-input dshic-novel-select', value: NOVEL_SCRATCH.browseCategory || '',
-            onChange: (e) => { NOVEL_SCRATCH.browseCategory = e.target.value; novelBrowseList(); },
-          }, cats.length
-            ? cats.map((c) => h('option', { key: 'bc-' + String(c.id), value: String(c.id) }, String(c.name || c.id)))
-            : h('option', { value: '' }, '（先选站点加载分类）')),
-          h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.browseBusy, onClick: () => { novelLoadCategories(NOVEL_SCRATCH.browseSite); } },
-            nv.browseBusy ? '加载中…' : '刷新分类')),
-        h('div', { className: 'dshic-novel-crawl-url' },
-          h('input', {
-            className: 'dshic-input', placeholder: '或直接粘贴作品 URL（如 https://book.zongheng.com/book/...）',
-            defaultValue: NOVEL_SCRATCH.crawlUrl,
-            onInput: (e) => { NOVEL_SCRATCH.crawlUrl = e.target.value; },
-          }),
-          h('input', {
-            className: 'dshic-input dshic-novel-num', type: 'number', min: 1, max: 2000, title: '最多抓取章节数',
-            defaultValue: NOVEL_SCRATCH.crawlMax,
-            onInput: (e) => { NOVEL_SCRATCH.crawlMax = e.target.value; },
-          }),
-          h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStart(null, null) }, '抓取入库')),
-        job
-          ? h('div', { className: 'dshic-novel-jobcard' },
-            h('span', {}, String(job.title || '') + ' · ' + jobSt),
-            h('span', { className: 'dshic-hint' },
-              (jobSt === 'scanning' && !job.total ? '正在扫描章节列表…' : (String(job.current || 0) + '/' + String(job.total || 0))) + (job.message ? ' · ' + String(job.message) : '')),
-            h('div', { className: 'dshic-novel-progress' },
-              h('div', { className: 'dshic-novel-progress-fill', style: { width: pct + '%' } })),
-            errs.length
-              ? h('div', { className: 'dshic-novel-errs' }, errs.slice(0, 5).map((er, i) => h('div', {
-                key: 'err-' + i, className: 'dshic-hint', title: String((er && (er.error || er.message)) || ''),
-              }, '· ' + String((er && (er.title || er.chapter)) || '') + '：' + String((er && (er.error || er.message)) || '').slice(0, 120))))
-              : null,
-            h('div', { className: 'dshic-novel-crawl-form' },
-              running
-                ? h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStop(job.novel_id) }, '停止')
-                : h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlContinue(job.novel_id) }, '继续抓取'),
-              running ? null : h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlReset(job.novel_id) }, '重置状态'),
+          h('button', {
+            type: 'button', className: 'dshic-nv-btn is-sm',
+            onClick: () => novelCrawlStart(r.url, r.title),
+          }, '抓取入库')));
+      const statPill = (p, i) => {
+        const st = String((p && p.status) || 'unknown');
+        const seg = st === 'ok' ? String(p.count || 0) + ' 条'
+          : (st === 'timeout' ? '超时 ' + Math.round(Number(p.elapsed_ms || 0) / 1000) + 's'
+            : (p.message ? String(p.message) : st));
+        return h('span', {
+          key: 'st' + i,
+          className: cls('dshic-site-stat', 'dshic-site-stat-' + st, 'is-' + st),
+          title: String((p && p.message) || ''),
+        }, nameOf(p && p.domain) + '：' + seg);
+      };
+      return h('div', { className: 'dshic-novel-body' },
+        h('div', { className: 'dshic-novel-col' },
+          h('div', { className: 'dshic-nv-card' },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, '跨站搜索'),
+              h('span', { className: 'dshic-nv-card-hint' }, '只搜勾选站点 · 番茄首次约 30-45 秒'),
+              h('span', { className: 'dshic-flex' }),
+              proxy ? h('span', { className: 'dshic-nv-hint' }, '代理池 ' + String(proxy.alive || 0) + '/' + String(proxy.total || 0)) : null,
+              h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', disabled: !!nv.proxyBusy, onClick: novelProxyRefresh },
+                nv.proxyBusy ? '刷新中…' : '代理池')),
+            h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-chiprow' },
+                h('span', { className: 'dshic-nv-hint' }, '站点'),
+                sites.map((s) => {
+                  const dom = String((s && s.domain) || '');
+                  const on = sel.indexOf(dom) >= 0;
+                  const off = !!(s && s.enabled === false);
+                  return h('button', {
+                    key: 'site-' + dom, type: 'button', disabled: off,
+                    className: cls('dshic-nv-chip', on && 'is-on'),
+                    title: String((s && s.reason) || (s && s.name) || dom),
+                    onClick: () => novelToggleSite(dom),
+                  },
+                    h('span', { className: cls('dshic-nv-chipdot', on && 'is-on') }),
+                    String((s && s.name) || dom));
+                }),
+                (!sites.length)
+                  ? h('span', { className: 'dshic-nv-hint' }, nv.sitesError ? ('站点表读取失败：' + String(nv.sitesError)) : '站点表加载中…')
+                  : null),
+              h('div', { className: 'dshic-nv-searchrow' },
+                h('input', {
+                  className: 'dshic-nv-input', type: 'search', placeholder: '输入书名 / 作者 / 关键词',
+                  defaultValue: NOVEL_SCRATCH.searchQ,
+                  onInput: (e) => { NOVEL_SCRATCH.searchQ = e.target.value; },
+                  onKeyDown: (e) => { if (e.key === 'Enter') novelSearch(); },
+                }),
+                h('button', { type: 'button', className: 'dshic-nv-btn is-primary', disabled: !!nv.searchBusy, onClick: novelSearch },
+                  nv.searchBusy ? '搜索中…' : '搜索')),
+              perSite.length ? h('div', { className: 'dshic-nv-statusrow' }, perSite.map(statPill)) : null)),
+          h('div', { className: 'dshic-nv-card' },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, '分类浏览'),
+              h('span', { className: 'dshic-nv-card-hint' }, '番茄这条通路约 2 秒，搜索被反爬时用它'),
               h('span', { className: 'dshic-flex' }),
               h('button', {
-                type: 'button', className: 'dshic-mini',
+                type: 'button', className: 'dshic-nv-btn is-sm is-ghost', disabled: !!nv.browseBusy,
+                onClick: () => novelLoadCategories(NOVEL_SCRATCH.browseSite || ''),
+              }, nv.browseBusy ? '加载中…' : '刷新分类')),
+            h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-row' },
+                h('select', {
+                  className: 'dshic-nv-input', value: String(NOVEL_SCRATCH.browseSite || ''),
+                  onChange: (e) => novelLoadCategories(e.target.value),
+                },
+                  sites.map((s) => h('option', { key: 'bs-' + String(s.domain || ''), value: String(s.domain || '') }, String(s.name || s.domain || '') )),
+                  (!sites.length) ? h('option', { value: '' }, '（先选站点加载分类）') : null),
+                h('select', {
+                  className: 'dshic-nv-input', value: String(NOVEL_SCRATCH.browseCategory || ''),
+                  onChange: (e) => {
+                    NOVEL_SCRATCH.browseCategory = e.target.value;
+                    updateNovel((n) => { n.browseItems = n.browseItems || []; });
+                    novelBrowseList();
+                  },
+                },
+                  cats.map((c) => h('option', { key: 'cat-' + String(c.id || c.name), value: String(c.id || '') }, String(c.name || c.id || ''))),
+                  (!cats.length) ? h('option', { value: '' }, '（先选站点加载分类）') : null),
+                h('button', { type: 'button', className: 'dshic-nv-btn', disabled: !!nv.browseBusy, onClick: novelBrowseList }, '加载列表')),
+              browse.length ? h('div', { className: 'dshic-nv-grid' }, browse.map((r, i) => pickCard(r, 'b' + i + '-' + String(r.book_id || r.title))))
+                : h('div', { className: 'dshic-nv-hint' }, '选择分类后点「加载列表」'))),
+          h('div', { className: 'dshic-nv-card' },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, '按 URL 入库'),
+              h('span', { className: 'dshic-nv-card-hint' }, '支持 fanqienovel / qidian / zongheng 作品页'),
+              h('span', { className: 'dshic-flex' })),
+            h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-row' },
+                h('input', {
+                  className: 'dshic-nv-input', placeholder: 'https://book.zongheng.com/book/…',
+                  defaultValue: NOVEL_SCRATCH.crawlUrl,
+                  onInput: (e) => { NOVEL_SCRATCH.crawlUrl = e.target.value; },
+                  style: { flex: '1 1 auto' },
+                }),
+                h('input', {
+                  className: 'dshic-nv-input is-num', type: 'number', min: 1, max: 2000,
+                  defaultValue: NOVEL_SCRATCH.crawlMax || 100,
+                  onInput: (e) => { NOVEL_SCRATCH.crawlMax = e.target.value; },
+                }),
+                h('button', { type: 'button', className: 'dshic-nv-btn is-primary', onClick: () => novelCrawlStart() }, '抓取入库')))),
+          job ? h('div', { className: 'dshic-nv-card' },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, '抓取任务'),
+              h('span', { className: 'dshic-nv-tag' }, jobSt || 'unknown'),
+              h('span', { className: 'dshic-nv-card-hint' }, String(job.title || job.novel_id || '').slice(0, 40)),
+              h('span', { className: 'dshic-flex' }),
+              running ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-danger', onClick: () => novelCrawlStop(job.novel_id) }, '停止')
+                : null,
+              (!running && job.novel_id) ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm', onClick: () => novelCrawlContinue(job.novel_id) }, '继续抓取') : null,
+              (!running && job.novel_id) ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelCrawlReset(job.novel_id) }, '重置状态') : null,
+              h('button', {
+                type: 'button', className: 'dshic-nv-btn is-sm is-ghost',
                 onClick: () => { novelStopPoll('crawl'); updateNovel((n) => { n.crawlJob = null; }); },
-              }, '收起')))
-          : null,
-        h('div', { className: 'dshic-novel-results' },
-          nv.searchBusy ? h('div', { className: 'dshic-hint' }, '跨站搜索中…') : null,
-          rows.map((r) => h('div', {
-            key: String(r.site_domain || '') + ':' + String(r.book_id || r.title),
-            className: 'dshic-novel-result',
-          },
-            h('span', { className: 'dshic-novel-result-site' }, String(r.source_site || r.site_domain || '')),
-            h('span', { className: 'dshic-novel-result-title', title: String(r.title || '') }, String(r.title || '')),
-            h('span', { className: 'dshic-novel-result-meta' }, String(r.author || '') + (r.status ? ' · ' + String(r.status) : '')),
-            h('span', { className: 'dshic-flex' }),
-            h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStart(r.url, r.title) }, '抓取')))))
+              }, '收起')),
+            h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-task' },
+                h('div', { className: 'dshic-nv-task-head' },
+                  h('span', {}, jobSt === 'scanning' ? '正在扫描章节列表…' : (String(cur) + ' / ' + (total ? String(total) : '?'))),
+                  h('span', { className: 'dshic-flex' }),
+                  h('span', { className: 'dshic-nv-hint' }, pct + '%')),
+                h('div', { className: 'dshic-nv-pbar' }, h('div', { className: 'dshic-nv-pbar-fill', style: { width: pct + '%' } }))),
+              (job.message ? h('div', { className: 'dshic-nv-hint' }, String(job.message)) : null),
+              errs.length ? h('div', { className: 'dshic-nv-errs' },
+                errs.slice(0, 5).map((er, i) => h('div', { key: 'er' + i }, String((er && er.title) || '') + '：' + String((er && er.error) || ''))),
+                errs.length > 5 ? h('div', {}, '…另有 ' + String(errs.length - 5) + ' 条') : null) : null))
+            : null,
+          results.length ? h('div', { className: 'dshic-nv-card' },
+            h('div', { className: 'dshic-nv-card-head' },
+              h('span', { className: 'dshic-nv-card-title' }, '搜索结果'),
+              h('span', { className: 'dshic-nv-card-hint' }, String(results.length) + ' 条' + (meta && meta.keyword ? ' · ' + String(meta.keyword) : '')),
+              h('span', { className: 'dshic-flex' })),
+            h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-grid' }, results.map((r, i) => pickCard(r, 'r' + i + '-' + String(r.book_id || r.title))))))
+            : null));
     }
-
     function novelNumInput(label, key, def) {
-      const pl = NOVEL_SCRATCH.plot;
-      return h('label', { className: 'dshic-novel-numwrap', key: 'num-' + key },
-        h('span', { className: 'dshic-hint' }, label),
+      const pl = NOVEL_SCRATCH.plot || {};
+      const cur = (pl[key] !== undefined && pl[key] !== null && pl[key] !== '') ? pl[key] : def;
+      return h('label', { className: 'dshic-nv-field', key: 'num-' + key },
+        h('span', { className: 'dshic-nv-label' }, label),
         h('input', {
-          type: 'number', className: 'dshic-input dshic-novel-num',
-          defaultValue: pl[key] !== undefined && pl[key] !== null && pl[key] !== '' ? pl[key] : def,
-          onInput: (e) => { pl[key] = e.target.value === '' ? '' : Number(e.target.value); },
+          type: 'number', className: 'dshic-nv-input is-num', defaultValue: cur,
+          onInput: (e) => {
+            NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { [key]: e.target.value === '' ? '' : Number(e.target.value) });
+          },
         }));
     }
 
@@ -23345,136 +23515,175 @@ const DIRECTOR_KEY_HELP = [
       const nv = S.novel || {};
       const diff = nv.diff;
       const one = nv.diffOne;
-      const pct = job.progress_pct || 0;
       const st = String(job.status || '');
+      const pct = Math.min(100, Math.round(Number(job.progress_pct || 0)));
       const running = ['pending', 'running', 'cancelling'].indexOf(st) >= 0;
-      return h('div', { className: 'dshic-novel-jobpanel' },
-        h('div', { className: 'dshic-novel-jobpanel-head' },
-          h('span', {}, String(job.new_title || job.source_title || '任务') + ' · ' + st),
-          h('span', { className: 'dshic-hint' },
-            String(job.current || 0) + '/' + String(job.total || 0) +
-            (job.eta_seconds ? ' · 预计 ' + Math.round(job.eta_seconds / 60) + ' 分钟' : '')),
+      const chapters = (diff && diff.chapters) || [];
+      return h('div', { className: 'dshic-nv-jobpanel' },
+        h('div', { className: 'dshic-nv-jobpanel-head' },
+          h('span', { className: 'dshic-nv-card-title' }, String(job.new_title || job.source_title || '改写任务')),
+          h('span', { className: 'dshic-nv-tag' }, st || 'unknown'),
+          h('span', { className: 'dshic-nv-card-hint' },
+            String(job.current || 0) + '/' + String(job.total || 0) + ' · ' + pct + '%'
+            + (job.eta_seconds ? ' · 约剩 ' + Math.max(1, Math.round(Number(job.eta_seconds) / 60)) + ' 分' : '')),
           h('span', { className: 'dshic-flex' }),
-          running ? h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCancelJob(job.job_id) }, '取消') : null),
-        h('div', { className: 'dshic-novel-progress' },
-          h('div', { className: 'dshic-novel-progress-fill', style: { width: pct + '%' } })),
-        job.message ? h('div', { className: 'dshic-hint' }, String(job.message)) : null,
-        (diff && diff.chapters && diff.chapters.length)
-          ? h('div', { className: 'dshic-novel-difflist' }, diff.chapters.map((c) => h('div', { key: 'd' + c.idx, className: 'dshic-novel-diffrow' },
-            h('span', { className: 'dshic-novel-chidx' }, '第' + c.idx + '章'),
-            h('span', { className: 'dshic-novel-chtitle' }, String(c.new_title || c.source_title || '')),
-            h('span', { className: 'dshic-novel-chmeta' },
-              String(c.new_chars || 0) + '字(' + ((c.char_delta > 0 ? '+' : '') + String(c.char_delta || 0)) + ')'),
-            c.approved ? h('span', { className: 'dshic-novel-tag' }, '已采纳') : null,
+          running ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-danger', onClick: () => novelCancelJob(job.job_id) }, '取消任务') : null),
+        h('div', { className: 'dshic-nv-pbar' }, h('div', { className: 'dshic-nv-pbar-fill', style: { width: pct + '%' } })),
+        (job.message ? h('div', { className: 'dshic-nv-hint' }, String(job.message)) : null),
+        (diff && diff.supported === false)
+          ? h('div', { className: 'dshic-nv-hint' }, String(diff.message || '任务尚未产出改写文本'))
+          : null,
+        chapters.length
+          ? h('div', { className: 'dshic-nv-difflist' }, chapters.map((c) => h('div', { key: 'd' + c.idx, className: 'dshic-nv-diffrow' },
+            h('span', { className: 'dshic-nv-ch-idx' }, '第' + String(c.idx) + '章'),
+            h('span', { className: 'dshic-nv-ch-title', title: String(c.source_title || '') }, String(c.new_title || c.source_title || '')),
+            h('span', { className: 'dshic-nv-ch-meta' },
+              String(c.new_chars || 0) + ' 字' + (c.char_delta ? '（' + (Number(c.char_delta) > 0 ? '+' : '') + String(c.char_delta) + '）' : '')),
+            c.approved ? h('span', { className: 'dshic-nv-tag' }, '已采纳') : null,
             h('span', { className: 'dshic-flex' }),
-            h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelLoadDiffOne(job.job_id, c.idx) }, '对比'),
+            h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelLoadDiffOne(job.job_id, c.idx) }, '对比'),
             h('button', {
-              type: 'button', className: 'dshic-mini',
+              type: 'button', className: cls('dshic-nv-btn', 'is-sm', c.approved ? 'is-ghost' : 'is-primary'),
               onClick: () => novelApprove(job.job_id, c.idx, !c.approved),
             }, c.approved ? '取消采纳' : '采纳'))))
-          : (diff && diff.message ? h('div', { className: 'dshic-hint' }, String(diff.message)) : null),
+          : null,
         one
-          ? h('div', { className: 'dshic-novel-diffone' },
-            h('div', { className: 'dshic-novel-diffone-title' },
-              '第' + String(one.idx || '') + '章 对比' + (one.similarity != null ? '（相似度 ' + one.similarity + '）' : '')),
-            h('pre', { className: 'dshic-novel-diffone-body' },
-              '【原文】' + String((one.source && one.source.title) || '') + '\n' +
-              String((one.source && one.source.content) || '') + '\n\n【改写】' +
-              String((one.rewritten && one.rewritten.title) || '') + '\n' +
-              String((one.rewritten && one.rewritten.content) || '')))
+          ? h('div', { className: 'dshic-nv-diffone' },
+            h('div', { className: 'dshic-nv-row is-tight' },
+              h('span', { className: 'dshic-nv-card-hint' },
+                '第' + String(one.idx || '') + '章 · 相似度 '
+                + (one.similarity != null ? Math.round(Number(one.similarity) * 100) + '%' : '—')
+                + ' · 字数 ' + (Number(one.char_delta) > 0 ? '+' : '') + String(one.char_delta || 0)),
+              h('span', { className: 'dshic-flex' }),
+              h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => updateNovel((n) => { n.diffOne = null; }) }, '收起对比')),
+            h('div', { className: 'dshic-nv-diffone-body' },
+              h('div', { className: 'dshic-nv-rw-col' },
+                h('div', { className: 'dshic-nv-label' }, '原文'),
+                h('pre', { className: 'dshic-nv-read-body' }, String((one.source && one.source.content) || '（无原文）'))),
+              h('div', { className: 'dshic-nv-rw-col' },
+                h('div', { className: 'dshic-nv-label' }, '改写'),
+                h('pre', { className: 'dshic-nv-read-body' }, String((one.rewritten && one.rewritten.content) || '（尚未产出）')))))
           : null);
     }
-
     function NovelRewriteTab() {
       const nv = S.novel || {};
       const books = nv.books || [];
       const jobs = nv.jobs || [];
-      const pl = NOVEL_SCRATCH.plot;
       const openJob = nv.openJob;
-      return h('div', { className: 'dshic-novel-rw' },
-        h('div', { className: 'dshic-novel-rw-left' },
-          h('div', { className: 'dshic-novel-rw-card' },
-            h('div', { className: 'dshic-novel-rw-title' }, '剧情改写（基于已有小说）'),
-            h('select', {
-              className: 'dshic-input', defaultValue: pl.novel_id || '',
-              onChange: (e) => { pl.novel_id = e.target.value; },
-            },
-              h('option', { value: '' }, '— 选择源小说 —'),
-              books.map((b) => h('option', { key: b.id, value: b.id },
-                String(b.title || '') + '（' + String(b.chapters_count || 0) + '章）'))),
-            h('div', { className: 'dshic-novel-rw-row' },
-              novelNumInput('起始章', 'chapter_start', 1),
-              novelNumInput('结束章(空=末章)', 'chapter_end', ''),
-              novelNumInput('每章字数', 'target_words', 2000),
-              novelNumInput('最多章数', 'max_chapters', 50)),
-            h('input', {
-              className: 'dshic-input', placeholder: '新书名（可空）',
-              defaultValue: pl.new_title || '', onInput: (e) => { pl.new_title = e.target.value; },
-            }),
-            h('input', {
-              className: 'dshic-input', placeholder: '题材 / 类型（可空）',
-              defaultValue: pl.genre || '', onInput: (e) => { pl.genre = e.target.value; },
-            }),
-            h('textarea', {
-              className: 'dshic-novel-textarea is-sm',
-              placeholder: '改写要求：世界观、爽点节奏、禁忌、必须保留的名场面…',
-              defaultValue: pl.requirements || '', onInput: (e) => { pl.requirements = e.target.value; },
-            }),
-            h('div', { className: 'dshic-novel-rw-row' },
-              h('label', { className: 'dshic-hint' },
-                h('input', {
-                  type: 'checkbox', defaultChecked: !!pl.keep_names,
-                  onChange: (e) => { pl.keep_names = e.target.checked; },
-                }), ' 保留原人物名'),
-              h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelStartRewrite('plot') }, '开始剧情改写'))),
-          h('div', { className: 'dshic-novel-rw-card' },
-            h('div', { className: 'dshic-novel-rw-title' }, '原创改写（一句话创意）'),
-            h('textarea', {
-              className: 'dshic-novel-textarea is-sm',
-              placeholder: '一句话创意，例如：大婚三月不同房，神女反手镇压全宗门',
-              defaultValue: pl.premise || '', onInput: (e) => { pl.premise = e.target.value; },
-            }),
-            h('div', { className: 'dshic-novel-rw-row' },
-              novelNumInput('章数', 'chapter_count', 10),
-              novelNumInput('每章字数', 'target_words_origin', 2000),
-              h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelStartRewrite('original') }, '开始原创')))),
-        h('div', { className: 'dshic-novel-rw-right' },
-          h('div', { className: 'dshic-novel-rw-bar' },
-            h('span', { className: 'dshic-novel-rw-title' }, '改写任务'),
-            h('button', { type: 'button', className: 'dshic-mini', onClick: novelLoadJobs }, '刷新')),
-          jobs.length
-            ? jobs.map((j) => h('button', {
-              key: j.job_id, type: 'button',
-              className: cls('dshic-novel-jobrow', openJob && openJob.job_id === j.job_id && 'is-active'),
-              onClick: () => { novelOpenJob(j.job_id); if (['pending', 'running', 'cancelling'].indexOf(String(j.status || '')) >= 0) novelPollJob(j.job_id); },
-            },
-              h('span', { className: 'dshic-novel-chtitle' },
-                String(j.new_title || j.source_title || j.job_id) + ' · ' + String(j.status || '')),
-              h('span', { className: 'dshic-novel-jobrow-pct' }, String(j.progress_pct || 0) + '%')))
-            : h('div', { className: 'dshic-hint', style: { padding: '8px 12px' } }, '暂无改写任务'),
-          openJob ? h(NovelJobPanel, { job: openJob }) : null));
+      const pl = NOVEL_SCRATCH.plot || {};
+      const txt = (label, key, ph) => h('label', { className: 'dshic-nv-field', key: 'txt-' + key },
+        h('span', { className: 'dshic-nv-label' }, label),
+        h('input', {
+          className: 'dshic-nv-input', placeholder: ph,
+          defaultValue: pl[key] != null ? String(pl[key]) : '',
+          onInput: (e) => { NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { [key]: e.target.value }); },
+        }));
+      const area = (key, ph, extra) => h('textarea', Object.assign({
+        className: 'dshic-nv-textarea is-sm', placeholder: ph,
+        defaultValue: pl[key] != null ? String(pl[key]) : '',
+        onInput: (e) => { NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { [key]: e.target.value }); },
+      }, extra || {}));
+      return h('div', { className: 'dshic-novel-body' },
+        h('div', { className: 'dshic-nv-rw' },
+          h('div', { className: 'dshic-novel-col' },
+            h('div', { className: 'dshic-nv-card' },
+              h('div', { className: 'dshic-nv-card-head' },
+                h('span', { className: 'dshic-nv-card-title' }, '剧情改写'),
+                h('span', { className: 'dshic-nv-card-hint' }, '取已有章节重写成新书'),
+                h('span', { className: 'dshic-flex' })),
+              h('div', { className: 'dshic-nv-card-body' },
+                h('label', { className: 'dshic-nv-field' },
+                  h('span', { className: 'dshic-nv-label' }, '源小说'),
+                  h('select', {
+                    className: 'dshic-nv-input', defaultValue: String(pl.novel_id || ''),
+                    onChange: (e) => { NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { novel_id: e.target.value }); },
+                  },
+                    h('option', { value: '' }, '— 选择源小说 —'),
+                    books.map((b) => h('option', { key: b.id, value: b.id },
+                      String(b.title || '') + '（' + String(b.chapters_count || 0) + ' 章）')))),
+                h('div', { className: 'dshic-nv-fields' },
+                  novelNumInput('起始章', 'chapter_start', 1),
+                  novelNumInput('结束章', 'chapter_end', ''),
+                  novelNumInput('每章字数', 'target_words', 2000),
+                  novelNumInput('最多章数', 'max_chapters', 50)),
+                txt('新书名（可空）', 'new_title', '例如：神女图 · 新篇'),
+                txt('题材 / 类型（可空）', 'genre', '例如：玄幻 / 逆袭'),
+                area('requirements', '改写要求：世界观、爽点节奏、禁忌、必须保留的名场面…'),
+                h('div', { className: 'dshic-nv-row is-tight' },
+                  h('label', { className: 'dshic-nv-field' },
+                    h('span', { className: 'dshic-nv-label' }, '保留原人物名'),
+                    h('input', {
+                      type: 'checkbox', defaultChecked: !!pl.keep_names,
+                      onChange: (e) => { NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { keep_names: e.target.checked }); },
+                    })),
+                  h('span', { className: 'dshic-flex' }),
+                  h('button', { type: 'button', className: 'dshic-nv-btn is-primary', onClick: () => novelStartRewrite('plot') }, '开始剧情改写')))),
+            h('div', { className: 'dshic-nv-card' },
+              h('div', { className: 'dshic-nv-card-head' },
+                h('span', { className: 'dshic-nv-card-title' }, '原创改写'),
+                h('span', { className: 'dshic-nv-card-hint' }, '一句话创意直接开书'),
+                h('span', { className: 'dshic-flex' })),
+              h('div', { className: 'dshic-nv-card-body' },
+                area('premise', '一句话创意，例如：大婚三月不同房，神女反手镇压全宗门', { style: { minHeight: '96px' } }),
+                h('div', { className: 'dshic-nv-fields' },
+                  h('label', { className: 'dshic-nv-field' },
+                    h('span', { className: 'dshic-nv-label' }, '书名（可空）'),
+                    h('input', {
+                      className: 'dshic-nv-input', defaultValue: String(pl.new_title || ''),
+                      onInput: (e) => { NOVEL_SCRATCH.plot = Object.assign({}, NOVEL_SCRATCH.plot || {}, { new_title: e.target.value }); },
+                    })),
+                  novelNumInput('章数', 'chapter_count', 10),
+                  novelNumInput('每章字数', 'target_words_origin', 2000)),
+                h('div', { className: 'dshic-nv-row is-tight' },
+                  h('span', { className: 'dshic-flex' }),
+                  h('button', { type: 'button', className: 'dshic-nv-btn is-primary', onClick: () => novelStartRewrite('original') }, '开始原创改写'))))),
+          h('div', { className: 'dshic-novel-col' },
+            h('div', { className: 'dshic-nv-card is-grow' },
+              h('div', { className: 'dshic-nv-card-head' },
+                h('span', { className: 'dshic-nv-card-title' }, '改写任务'),
+                h('span', { className: 'dshic-nv-card-hint' }, String(jobs.length) + ' 个'),
+                h('span', { className: 'dshic-flex' }),
+                h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: novelLoadJobs }, '刷新')),
+              h('div', { className: 'dshic-nv-card-body' },
+                jobs.length
+                  ? h('div', { className: 'dshic-nv-joblist' }, jobs.map((j) => h('div', {
+                    key: j.job_id, role: 'button', tabIndex: 0,
+                    className: cls('dshic-nv-jobrow', openJob && openJob.job_id === j.job_id && 'is-active'),
+                    onClick: () => {
+                      novelOpenJob(j.job_id);
+                      if (['pending', 'running', 'cancelling'].indexOf(String(j.status || '')) >= 0) novelPollJob(j.job_id);
+                    },
+                  },
+                    h('span', { className: 'dshic-nv-jobrow-title' },
+                      String(j.new_title || j.source_title || j.job_id) + ' · ' + String(j.status || '')),
+                    h('span', { className: 'dshic-nv-jobrow-pct' }, String(j.progress_pct || 0) + '%'))))
+                  : h('div', { className: 'dshic-nv-hint' }, '还没有改写任务'),
+                openJob ? h(NovelJobPanel, { job: openJob }) : null)))));
     }
-
     function NovelWorkspace() {
       useApp();
       useEffect(() => { novelBootstrap(); return undefined; }, []);
       const nv = S.novel || {};
       const tab = nv.tab || 'shelf';
       const tabs = [['shelf', T('novelTabShelf')], ['crawl', T('novelTabCrawl')], ['rewrite', T('novelTabRewrite')]];
+      const sub = tab === 'crawl'
+        ? '多平台抓取：跨站搜索、分类浏览、按 URL 入库'
+        : (tab === 'rewrite' ? '改写台：剧情改写 / 原创改写，逐章对比与采纳' : '书架：章节阅读，一键转成画布剧本节点');
       return h('div', { className: 'dshic-novel', 'data-role': 'novel-workspace' },
         h('div', { className: 'dshic-novel-head' },
+          h('div', { className: 'dshic-novel-title' }, '小说'),
           h('div', { className: 'dshic-novel-tabs' }, tabs.map((t) => h('button', {
             key: t[0], type: 'button', 'data-novel-tab': t[0],
             className: cls('dshic-novel-tab', tab === t[0] && 'is-active'),
-            onClick: () => { novelStopPoll('crawl'); updateNovel((n) => { n.tab = t[0]; }); },
+            onClick: () => updateNovel((n) => { n.tab = t[0]; }),
           }, t[1]))),
+          h('div', { className: 'dshic-novel-title-sub' }, sub),
+          h('span', { className: 'dshic-flex' }),
           h(NovStatusChip)),
-        h('div', { className: 'dshic-novel-body' },
-          tab === 'crawl'
-            ? h(NovelCrawlTab)
-            : (tab === 'rewrite' ? h(NovelRewriteTab) : h(NovelShelfTab))));
+        tab === 'crawl'
+          ? h(NovelCrawlTab)
+          : (tab === 'rewrite' ? h(NovelRewriteTab) : h(NovelShelfTab)));
     }
-
     // 顶部工具栏：最左「返回」图标 → 项目名（下拉切换 / 双击或铅笔重命名 / 新建）
     // 说明：添节点在左侧图标列，运行工作流也在图标列；快捷键/帮助/检查更新是右上角纯图标按钮。
     // ============================================================
