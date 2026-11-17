@@ -1038,15 +1038,51 @@ function dataRootImport(opts) {
 /** 设定集字段规范化（世界观/风格 + 角色/场景/道具条目，条目可携带链接资产 assetIds）。 */
 function normalizeBible(raw) {
   const b = (raw && typeof raw === 'object') ? raw : {};
+  // 角色视觉身份档案（VI）：外貌事实分层（ORIGINAL 原文 / INFERRED 推导 / DEFAULT 默认）。
+  // 只做白名单与长度裁剪，未知键丢弃；没有 vi 的条目保持原形状（旧文档不膨胀）。
+  const viStr = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+  const normalizeVI = (raw) => {
+    const v = (raw && typeof raw === 'object') ? raw : null;
+    if (!v) return null;
+    const fields = {};
+    const src = (v.fields && typeof v.fields === 'object') ? v.fields : {};
+    for (const k of ['gender', 'age', 'height', 'build', 'face', 'eyes', 'hair', 'skin', 'costume', 'palette', 'accessories', 'aura']) {
+      const f = src[k];
+      if (!f || typeof f !== 'object') continue;
+      const val = viStr(f.v != null ? f.v : f.value, 200);
+      if (!val) continue;
+      const code = String(f.src || '').toUpperCase();
+      const out = { v: val, src: (code === 'ORIGINAL' || code === 'DEFAULT') ? code : 'INFERRED' };
+      const cf = Number(f.conf);
+      if (Number.isFinite(cf)) out.conf = Math.max(0, Math.min(1, cf));
+      fields[k] = out;
+    }
+    const list = (x, n, len) => (Array.isArray(x) ? x : []).map((y) => viStr(y, len)).filter(Boolean).slice(0, n);
+    return {
+      level: /^L[0-3]$/.test(String(v.level || '')) ? String(v.level) : 'L0',
+      mode: v.mode === 'strict' ? 'strict' : 'design',
+      locked: v.locked === false ? false : true,
+      updatedAt: Number(v.updatedAt) || 0,
+      fields,
+      original: list(v.original, 8, 300),
+      forbidden: list(v.forbidden, 8, 120),
+      notes: viStr(v.notes, 600),
+    };
+  };
   const arr = (v) => (Array.isArray(v) ? v : [])
-    .map((x) => ({
-      name: String((x && x.name) || '').slice(0, 60),
-      desc: String((x && x.desc) || '').slice(0, 2000),
-      // 链接的资产 id（图片/音频/视频）：设定条目与可视化资产的绑定，@引用与参考图解析会用到
-      assetIds: Array.isArray(x && x.assetIds)
-        ? [...new Set(x.assetIds.map((a) => String(a || '').trim()).filter(Boolean))].slice(0, 20)
-        : [],
-    }))
+    .map((x) => {
+      const out = {
+        name: String((x && x.name) || '').slice(0, 60),
+        desc: String((x && x.desc) || '').slice(0, 2000),
+        // 链接的资产 id（图片/音频/视频）：设定条目与可视化资产的绑定，@引用与参考图解析会用到
+        assetIds: Array.isArray(x && x.assetIds)
+          ? [...new Set(x.assetIds.map((a) => String(a || '').trim()).filter(Boolean))].slice(0, 20)
+          : [],
+      };
+      const vi = normalizeVI(x && x.vi);
+      if (vi && Object.keys(vi.fields).length) out.vi = vi;
+      return out;
+    })
     .filter((x) => x.name);
   return {
     worldview: String(b.worldview || '').slice(0, 8000),
@@ -7955,7 +7991,7 @@ function assetsAutobindProject(args) {
         const ek = normEntityName(e.name).replace(/\d+/g, '');
         const ids = (Array.isArray(e.assetIds) ? e.assetIds : []).map(String);
         const host = kept.find((x) => normEntityName(x.name).replace(/\d+/g, '') === ek);
-        if (host && !String(e.desc || '').trim() && ids.every((id) => (host.assetIds || []).map(String).includes(id))) {
+        if (host && !String(e.desc || '').trim() && !e.vi && ids.every((id) => (host.assetIds || []).map(String).includes(id))) {
           host.assetIds = [...new Set([...(host.assetIds || []).map(String), ...ids])].slice(0, 20);
           continue;
         }

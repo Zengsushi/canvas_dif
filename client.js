@@ -1569,6 +1569,33 @@ function revealCanvasInRight() {
       'copyPromptDone': '提示词已复制',
       'copyPromptEmpty': '没有可复制的提示词',
       'sheetWord': '设定图',
+      'viMenu': '视觉身份与外观推导…',
+      'viTitle': '角色视觉身份档案',
+      'viSub': '从小说上下文与设定集推导外貌；锁定后作为设定图 / 分镜铺开 / 视频生成的唯一形象事实',
+      'viLevel': '信息完整度 {l}',
+      'viModeStrict': '模式 A · 原文严格还原',
+      'viModeDesign': '模式 B · 智能外观设计',
+      'viInfer': '推导视觉身份',
+      'viReinfer': '重新推导',
+      'viInferring': '推导中…',
+      'viLocked': '已锁定',
+      'viUnlocked': '未锁定',
+      'viCopyPrompt': '复制提示词',
+      'viToSheet': '写入设定图节点',
+      'viToSheetDone': '已创建设定图节点（提示词按视觉身份重写）',
+      'viClear': '清除档案',
+      'viCleared': '视觉身份档案已清除',
+      'viEmpty': '还没有档案：点「推导视觉身份」，按小说上下文与设定集推导',
+      'viNeedName': '先给角色填好名称再推导',
+      'viNeedProject': '请先打开一个画布项目',
+      'viFail': '推导失败：{e}',
+      'viFields': '外貌字段（原文 / 推导 / 默认）',
+      'viOriginal': '原文明确的外观',
+      'viForbidden': '禁止添加',
+      'viNotes': '备注',
+      'viNoOriginal': '原文没有外观描写，全部按上下文推导',
+      'viClose': '关闭',
+      'viHint': '设定图、分镜铺开与视频生成都会引用这份档案；原文事实不允许被推导覆盖',
       'importPackageFailed': '导入失败：{e}',
       'dataRootImported': '导入完成：合并 {n} 个项目、补入 {a} 条资产元数据',
       'dataRootImportHint': '换电脑迁移：把整个数据目录拷到新机器 → 设置为数据根目录 → 点"从数据目录导入"即可恢复项目/节点/设定集/资产',
@@ -2952,6 +2979,33 @@ function revealCanvasInRight() {
       'copyPromptDone': 'Prompt copied',
       'copyPromptEmpty': 'Nothing to copy',
       'sheetWord': 'sheet',
+      'viMenu': 'Visual identity & appearance…',
+      'viTitle': 'Character visual identity',
+      'viSub': 'Derived from the novel context and the bible; once locked it is the single source of truth for sheets, storyboards and video',
+      'viLevel': 'Information level {l}',
+      'viModeStrict': 'Mode A · source-faithful',
+      'viModeDesign': 'Mode B · designed look',
+      'viInfer': 'Infer visual identity',
+      'viReinfer': 'Re-infer',
+      'viInferring': 'Inferring…',
+      'viLocked': 'Locked',
+      'viUnlocked': 'Unlocked',
+      'viCopyPrompt': 'Copy prompt',
+      'viToSheet': 'Create sheet node',
+      'viToSheetDone': 'Sheet node created with the identity locked into its prompt',
+      'viClear': 'Clear record',
+      'viCleared': 'Visual identity cleared',
+      'viEmpty': 'No record yet — infer one from the novel context',
+      'viNeedName': 'Name the character first',
+      'viNeedProject': 'Open a canvas project first',
+      'viFail': 'Inference failed: {e}',
+      'viFields': 'Appearance fields (source / inferred / default)',
+      'viOriginal': 'Appearance fixed by the source',
+      'viForbidden': 'Never add',
+      'viNotes': 'Notes',
+      'viNoOriginal': 'The source has no appearance description — everything is inferred',
+      'viClose': 'Close',
+      'viHint': 'Sheets, storyboard expansion and video generation all read this record; inferred values may never override source facts',
       'importPackageFailed': 'Import failed: {e}',
       'dataRootImported': 'Imported: {n} projects merged, {a} asset records added',
       'dataRootImportHint': 'Migration: copy the whole data folder to the new machine, set it as data root, then click "Import from data root" to restore projects/nodes/bible/assets',
@@ -4206,6 +4260,22 @@ body[data-ds-dark-theme] .dshic-novel .dshic-nv-select option{background:#1b1c20
 .dshic-nv-modal-info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;}
 .dshic-nv-modal-desc{font-size:12.5px;line-height:1.65;color:var(--dsw-alias-label-primary);
   white-space:pre-wrap;max-height:36vh;overflow:auto;}
+.dshic-vi{width:520px;max-width:calc(100vw - 48px);}
+.dshic-vi-body{display:flex;flex-direction:column;gap:10px;max-height:62vh;overflow:auto;}
+.dshic-vi-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.dshic-vi-chip{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);}
+.dshic-vi-chip.is-l3{border-color:#3a8f5a;color:#3a8f5a;}
+.dshic-vi-chip.is-l2{border-color:#b4842a;color:#b4842a;}
+.dshic-vi-chip.is-original{border-color:#3a8f5a;color:#3a8f5a;}
+.dshic-vi-chip.is-inferred{border-color:#b4842a;color:#b4842a;}
+.dshic-vi-chip.is-default{border-color:var(--dsw-alias-border-l1);}
+.dshic-vi-grid{display:grid;grid-template-columns:84px 1fr;gap:6px 10px;font-size:12px;}
+.dshic-vi-k{color:var(--dsw-alias-label-secondary);}
+.dshic-vi-v{color:var(--dsw-alias-label-primary);line-height:1.5;}
+.dshic-vi-sec{font-size:11.5px;font-weight:600;color:var(--dsw-alias-label-secondary);}
+.dshic-vi-lines{margin:0;padding-left:16px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-primary);}
+.dshic-vi-pre{white-space:pre-wrap;font-size:11.5px;line-height:1.55;max-height:190px;overflow:auto;padding:8px 10px;border-radius:9px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 6%,transparent);}
+.dshic-vi-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .dshic-nv-task{display:flex;flex-direction:column;gap:9px;}
 .dshic-nv-task-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;font-weight:600;}
 .dshic-nv-pbar{height:6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);overflow:hidden;}
@@ -5797,6 +5867,326 @@ body[data-ds-dark-theme] .dshic-pick-item.is-on{background:color-mix(in srgb,var
       copyText(t, T('copyPromptDone'));
     }
 
+    // ============================================================
+    // 角色视觉身份档案（Visual Identity，简称 VI）
+    // 小说人物常只有名字/身份/台词，没有外貌描写；直接出设定图会形象随机、跨镜不一致。
+    // 这里把外貌事实分层存进档案：ORIGINAL（原文明确，不可改）/ INFERRED（依上下文推导，可设计）
+    // / DEFAULT（原文缺失，克制默认）。锁定后成为设定图、分镜铺开与视频生成的唯一形象事实。
+    // <<<VI_PURE_BEGIN>>>
+    const VI_FIELD_KEYS = ['gender', 'age', 'height', 'build', 'face', 'eyes', 'hair', 'skin', 'costume', 'palette', 'accessories', 'aura'];
+    const VI_FIELD_LABELS = {
+      gender: ['性别', 'Gender'], age: ['年龄感', 'Age'], height: ['身高', 'Height'], build: ['体型', 'Build'],
+      face: ['脸型', 'Face'], eyes: ['眼睛', 'Eyes'], hair: ['发型发色', 'Hair'], skin: ['肤色', 'Skin'],
+      costume: ['服装', 'Costume'], palette: ['配色', 'Palette'], accessories: ['配饰', 'Accessories'], aura: ['气质', 'Presence'],
+    };
+    const VI_SRC_LABEL = { ORIGINAL: ['原文', 'source'], INFERRED: ['推导', 'inferred'], DEFAULT: ['默认', 'default'] };
+    const VI_SRC_SET = new Set(['ORIGINAL', 'INFERRED', 'DEFAULT']);
+    const VI_KIND_KEY = { character: 'characters', scene: 'scenes', prop: 'props' };
+    function viKeyOf(kind) { return VI_KIND_KEY[String(kind || '')] || 'characters'; }
+    function viFieldLabel(k, zh) { const x = VI_FIELD_LABELS[k]; return x ? (zh ? x[0] : x[1]) : String(k || ''); }
+    function viSrcLabel(src, zh) { const x = VI_SRC_LABEL[String(src || '').toUpperCase()]; return x ? (zh ? x[0] : x[1]) : (zh ? '推导' : 'inferred'); }
+    function emptyVI() { return { level: 'L0', mode: 'design', locked: true, updatedAt: 0, fields: {}, original: [], forbidden: [], notes: '' }; }
+    /** 档案规范化（与服务端 normalizeBible 白名单同口径）：未知字段丢弃、超长截断、来源夹取。 */
+    function normalizeVI(raw) {
+      const v = (raw && typeof raw === 'object') ? raw : null;
+      if (!v) return null;
+      const s = (x, n) => String(x == null ? '' : x).trim().slice(0, n);
+      const src = (v.fields && typeof v.fields === 'object') ? v.fields : {};
+      const fields = {};
+      for (const k of VI_FIELD_KEYS) {
+        const f = src[k];
+        const val = (f && typeof f === 'object') ? s(f.v != null ? f.v : f.value, 200) : s(f, 200);
+        if (!val) continue;
+        const code = String((f && typeof f === 'object' && f.src) || '').toUpperCase();
+        const out = { v: val, src: VI_SRC_SET.has(code) ? code : 'INFERRED' };
+        const cf = Number(f && typeof f === 'object' ? f.conf : NaN);
+        if (Number.isFinite(cf)) out.conf = Math.max(0, Math.min(1, cf));
+        fields[k] = out;
+      }
+      const arr = (x, n, len) => (Array.isArray(x) ? x : []).map((y) => s(y, len)).filter(Boolean).slice(0, n);
+      return {
+        level: /^L[0-3]$/.test(String(v.level || '')) ? String(v.level) : 'L0',
+        mode: v.mode === 'strict' ? 'strict' : 'design',
+        locked: v.locked === false ? false : true,
+        updatedAt: Number(v.updatedAt) || 0,
+        fields: fields,
+        original: arr(v.original, 8, 300),
+        forbidden: arr(v.forbidden, 8, 120),
+        notes: s(v.notes, 600),
+      };
+    }
+    /** 信息完整度 L0–L3：按「原文事实条数」判定；没有档案时，有描述记 L1，否则 L0。 */
+    function viInfoLevel(vi, desc) {
+      const vals = (vi && vi.fields) ? Object.keys(vi.fields).map((k) => vi.fields[k]) : [];
+      if (!vals.length) return String(desc || '').trim() ? 'L1' : 'L0';
+      const orig = vals.filter((f) => f && f.src === 'ORIGINAL').length;
+      if (orig >= 2) return 'L3';
+      if (orig >= 1) return 'L2';
+      return vals.some((f) => f && f.src === 'INFERRED') ? 'L2' : 'L1';
+    }
+    /** A+B 自动路由：L3（原文有成体系外貌）走 strict 严格还原，其余走 design 智能设计。 */
+    function viRouteMode(level) { return String(level || '') === 'L3' ? 'strict' : 'design'; }
+    function viFieldValue(vi, k) { const f = vi && vi.fields && vi.fields[k]; return f ? String(f.v || '') : ''; }
+    /** 外观一句式（设定图提示词的 lookLine）：按固定字段顺序拼；strict 先把原文事实前置。 */
+    function viLookLine(vi, zh) {
+      if (!vi || !vi.fields) return '';
+      const order = vi.mode === 'strict'
+        ? ['hair', 'face', 'eyes', 'skin', 'height', 'build', 'costume', 'palette', 'accessories', 'aura', 'age', 'gender']
+        : ['gender', 'age', 'height', 'build', 'face', 'eyes', 'hair', 'skin', 'costume', 'palette', 'accessories', 'aura'];
+      const parts = [];
+      for (const k of order) {
+        const f = vi.fields[k];
+        if (!f || !f.v) continue;
+        parts.push((zh ? viFieldLabel(k, true) + '：' : viFieldLabel(k, false) + ': ') + f.v);
+      }
+      if (!parts.length) return '';
+      return (zh ? '外观锁定（逐项照此绘制，不得改动）：' : 'Locked appearance (draw exactly this, never change): ') + parts.join(zh ? '；' : '; ');
+    }
+    /** 负面约束：档案登记的禁止项 + 通用人像负面（防止模型自行加戏与风格漂移）。 */
+    function viNegative(vi, zh) {
+      const base = zh
+        ? ['不要改变脸型与五官比例', '不要换服装或改配色', '不要添加纹身、伤疤、异色瞳等无依据特征', '不要添加原文没有的武器、首饰、身份象征物', '不要出现文字水印']
+        : ['do not change face shape or feature proportions', 'do not change costume or palette', 'no tattoos, scars or heterochromia without basis', 'no weapons, jewellery or status symbols absent from the source', 'no watermark'];
+      const extra = (vi && Array.isArray(vi.forbidden) ? vi.forbidden : []).map((x) => String(x || '').trim()).filter(Boolean);
+      return base.concat(extra).join(zh ? '；' : '; ');
+    }
+    /** 提示词编译（A–I）：把档案翻译成模型可理解的结构化文本；strict/design 只差措辞强度与事实顺序。 */
+    function compileViPrompt(entry, bible, zh) {
+      const nm = String((entry && entry.name) || '').trim();
+      const vi = normalizeVI(entry && entry.vi);
+      if (!nm || !vi) return '';
+      const strict = vi.mode === 'strict';
+      const fLine = (k) => {
+        const f = vi.fields[k];
+        if (!f) return '';
+        return viFieldLabel(k, zh) + (zh ? '：' : ': ') + f.v + (zh ? '（' + viSrcLabel(f.src, true) + '）' : ' (' + viSrcLabel(f.src, false) + ')');
+      };
+      const bySrc = (want) => VI_FIELD_KEYS.filter((k) => vi.fields[k] && vi.fields[k].src === want).map(fLine);
+      const L = [];
+      L.push(zh
+        ? '【A 角色基础身份】' + nm + '｜信息完整度 ' + (vi.level || 'L0') + '｜' + (strict ? '模式A 原文严格还原' : '模式B 智能外观设计')
+        : '[A Identity] ' + nm + ' | level ' + (vi.level || 'L0') + ' | ' + (strict ? 'mode A source-faithful' : 'mode B designed look'));
+      const orig = bySrc('ORIGINAL');
+      const inf = bySrc('INFERRED');
+      const def = bySrc('DEFAULT');
+      L.push((zh ? '【B 原文明确】' : '[B From the source] ') + (orig.length ? (zh ? orig.join('；') : orig.join('; ')) : (zh ? '（无，本条目不虚构原文）' : '(none)')));
+      if (inf.length) L.push((zh ? '【C 推导】' : '[C Inferred] ') + (zh ? inf.join('；') : inf.join('; ')));
+      if (def.length) L.push((zh ? '【D 默认补全】' : '[D Defaults] ') + (zh ? def.join('；') : def.join('; ')));
+      const look = viLookLine(vi, zh);
+      if (look) L.push((zh ? '【E 完整视觉形象】' : '[E Full look] ') + look);
+      const costume = [viFieldValue(vi, 'costume'), viFieldValue(vi, 'palette')].filter(Boolean).join(zh ? '；' : '; ');
+      if (costume) L.push((zh ? '【F 服装与配色规范】' : '[F Costume & palette] ') + costume + (zh ? '（同一角色所有镜头沿用，不得换装换色）' : ' (identical in every shot, no wardrobe or palette drift)'));
+      L.push(zh
+        ? '【G 身份一致性】所有视角、表情与镜头必须保持同一张脸、同一发型、同一体型、同一套服装与配色；表情格只改表情，不改身份。'
+        : '[G Identity lock] Every angle, expression and shot keeps the same face, hair, build, costume and palette; expression panels change the expression only.');
+      const sheet = buildAssetSheetPrompt('character', nm, (entry && entry.desc) || '', bible, zh);
+      if (sheet) L.push((zh ? '【H 设定图提示词】' : '[H Sheet prompt] ') + sheet);
+      L.push((zh ? '【I 负面提示】' : '[I Negative] ') + viNegative(vi, zh));
+      return L.join('\n');
+    }
+    /** 推导用的系统提示词：五层架构 + P0–P3 优先级 + 禁止项 + 严格 JSON 输出。 */
+    function viSystemPrompt(zh) {
+      if (!zh) {
+        return [
+          'You build a locked visual-identity record for ONE character of a web novel, so that image and video generation stays consistent.',
+          'Rules, in priority order: P0 facts stated in the source (never change, mark src=ORIGINAL); P1 facts the context makes certain (src=INFERRED); P2 traits derivable from identity, era, class, profession, personality (src=INFERRED); P3 everything else gets a restrained default (src=DEFAULT).',
+          'Never dress inference up as source fact. If the source says the character is a frail middle-aged beggar, do not design a young handsome noble.',
+          'Do not invent tattoos, scars, heterochromia, ornate headwear, precious jewellery, weapons, or status symbols unless the source supports them.',
+          'Fill these fields: gender, age, height, build, face, eyes, hair, skin, costume, palette, accessories, aura. Each value is one short sentence in Chinese-friendly descriptive language; keep it concrete and drawable.',
+          'Also return original[] (verbatim appearance facts quoted from the context, empty if none) and forbidden[] (things this character must never get, e.g. "no sword").',
+          'Answer with JSON only, no prose, shape: {"fields":{"gender":{"v":"...","src":"ORIGINAL|INFERRED|DEFAULT","conf":0.8}},"original":["..."],"forbidden":["..."],"notes":"..."}',
+        ].join('\n');
+      }
+      return [
+        '你在为网文小说里的**一个角色**建立锁定的视觉身份档案，供后续设定图、分镜与视频生成保持形象一致。',
+        '信息优先级：P0 小说原文明确写出（不得修改，src 标 ORIGINAL）；P1 上下文可以确定（src 标 INFERRED）；P2 依身份/时代/阶层/职业/性格可推导（src 标 INFERRED）；P3 原文完全缺失时的克制默认（src 标 DEFAULT）。',
+        '禁止把 P2/P3 的推导伪装成原文事实；原文若写「瘦弱的中年乞丐」，不得设计成年英俊贵公子。',
+        'ORIGINAL 只给**原文句子明确写出**的字段；凡是要靠身份、时代、性格、常识推断的，一律 INFERRED；完全没依据的补齐用 DEFAULT。宁可标 INFERRED，也不要谎称原文。',
+        '不得凭空增加纹身、伤疤、异色瞳、繁复头饰、贵重首饰、武器或身份象征物。',
+        '需要填的字段：gender 性别、age 年龄感、height 身高、build 体型、face 脸型、eyes 眼睛、hair 发型发色、skin 肤色、costume 服装、palette 配色、accessories 配饰、aura 气质。每个值是**一句具体可画**的中文描述。',
+        '另外返回 original[]（从上下文里摘出的原文外貌事实，没有就空数组）与 forbidden[]（这个角色绝不能出现的东西，例如「不要剑」）。',
+        '只输出 JSON，不要任何解释文字，结构：{"fields":{"gender":{"v":"...","src":"ORIGINAL|INFERRED|DEFAULT","conf":0.8}},"original":["..."],"forbidden":["..."],"notes":"..."}',
+      ].join('\n');
+    }
+    /** 解析模型输出：去代码围栏 → 截取首个 { 到末个 } → JSON.parse → 兼容扁平字段写法 → 规范化。 */
+    function parseViJson(text) {
+      let s = String(text || '').trim();
+      if (!s) return null;
+      s = s.replace(/^[^\{]*\{/, '{').replace(/\}[^\}]*$/, '}');
+      const i = s.indexOf('{');
+      const j = s.lastIndexOf('}');
+      if (i < 0 || j <= i) return null;
+      let obj = null;
+      try { obj = JSON.parse(s.slice(i, j + 1)); } catch { return null; }
+      if (!obj || typeof obj !== 'object') return null;
+      const fields = (obj.fields && typeof obj.fields === 'object') ? obj.fields : {};
+      if (!Object.keys(fields).length) {
+        for (const k of VI_FIELD_KEYS) if (obj[k] != null) fields[k] = obj[k];
+      }
+      const vi = normalizeVI({ fields: fields, original: obj.original, forbidden: obj.forbidden, notes: obj.notes, locked: true });
+      if (!vi || !Object.keys(vi.fields).length) return null;
+      vi.level = viInfoLevel(vi, '');
+      vi.mode = viRouteMode(vi.level);
+      return vi;
+    }
+    /** 从设定图节点标签反查目标实体：角色-洛赋 设定图 → { kind:'character', name:'洛赋' }。 */
+    function viTargetFromLabel(label) {
+      const m = /^(角色|场景|道具)-(.+?)\s*设定图$/.exec(String(label || '').trim());
+      if (!m) return null;
+      return { kind: m[1] === '角色' ? 'character' : m[1] === '场景' ? 'scene' : 'prop', name: m[2] };
+    }
+    function viEntryIndex(bible, kind, name) {
+      const arr = (bible && bible[viKeyOf(kind)]) || [];
+      const nm = String(name || '').trim();
+      if (!nm) return -1;
+      for (let i = 0; i < arr.length; i++) if (String((arr[i] && arr[i].name) || '').trim() === nm) return i;
+      return -1;
+    }
+    // <<<VI_PURE_END>>>
+    /** 项目里提到该角色的剧本文本（小说桥接进来的章节优先）：作为推导上下文，最多 3 段 × 2400 字。 */
+    function viContextFromCanvas(name) {
+      const nm = String(name || '').trim();
+      if (!nm) return [];
+      const nodes = Object.values((S.graph && S.graph.nodes) || {});
+      const bridge = [];
+      const other = [];
+      for (const n of nodes) {
+        const d = (n && n.data) || {};
+        const t = String(d.output || d.text || d.idea || '');
+        if (!t || t.indexOf(nm) < 0) continue;
+        (d.sourceNovel ? bridge : other).push(t.slice(0, 2400));
+      }
+      return bridge.concat(other).slice(0, 3);
+    }
+    /** 推导上下文：世界观/风格/角色描述 + 画布里提到该角色的文本。 */
+    function viContextText(entry, bible, extra, zh) {
+      const nm = String((entry && entry.name) || '').trim();
+      const L = [];
+      if ((bible.worldview || '').trim()) L.push((zh ? '【世界观】' : '[Worldview] ') + String(bible.worldview).trim().slice(0, 1200));
+      if ((bible.style || '').trim()) L.push((zh ? '【风格基调】' : '[Style] ') + String(bible.style).trim().slice(0, 400));
+      if ((entry.desc || '').trim()) L.push((zh ? '【设定集里的角色描述】' : '[Bible entry] ') + nm + (zh ? '：' : ': ') + String(entry.desc).trim().slice(0, 800));
+      const mentions = (extra || []).filter(Boolean);
+      if (mentions.length) {
+        L.push(zh ? '【小说/剧本里与该角色有关的原文片段】' : '[Source excerpts mentioning the character]');
+        mentions.forEach((t, i) => L.push('(' + (i + 1) + ') ' + t));
+      } else {
+        L.push(zh ? '【原文片段】暂无（不要因此编造原文事实，全部按 P2/P3 处理）' : '[Source excerpts] none — treat everything as P2/P3');
+      }
+      L.push(zh
+        ? '请为角色「' + nm + '」输出视觉身份档案 JSON。'
+        : 'Produce the visual-identity JSON for "' + nm + '".');
+      return L.join('\n');
+    }
+    /** 把档案写回设定集条目（不存在则按名新建），并触发分镜一致性重算与资产页刷新。 */
+    function viSaveRecord(kind, name, vi) {
+      const pid = S.activeId;
+      if (!pid) return null;
+      const key = viKeyOf(kind);
+      const nm = String(name || '').trim();
+      const bible = loadBible(pid);
+      const arr = [...(bible[key] || [])];
+      const i = viEntryIndex(bible, kind, nm);
+      if (i >= 0) arr[i] = Object.assign({}, arr[i], { vi: vi });
+      else arr.push({ name: nm, desc: '', assetIds: [], vi: vi });
+      const next = Object.assign({}, bible, { [key]: arr });
+      saveBible(pid, next);
+      update((s) => { s.bibleTick++; s.assetsTick++; });
+      return next;
+    }
+    function viRecordOf(kind, name) {
+      const pid = S.activeId;
+      if (!pid) return null;
+      const bible = loadBible(pid);
+      const i = viEntryIndex(bible, kind, name);
+      return i >= 0 ? normalizeVI(bible[viKeyOf(kind)][i].vi) : null;
+    }
+    /** 推导一个条目的视觉身份：读上下文 → 调宿主模型 → 解析 JSON → 落档案。 */
+    async function inferVisualIdentity(kind, name) {
+      const pid = S.activeId;
+      const nm = String(name || '').trim();
+      if (!pid) { toast(T('viNeedProject')); return null; }
+      if (!nm) { toast(T('viNeedName')); return null; }
+      const zh = effLang() !== 'en';
+      const bible = loadBible(pid);
+      const i = viEntryIndex(bible, kind, nm);
+      const entry = i >= 0 ? bible[viKeyOf(kind)][i] : { name: nm, desc: '', assetIds: [] };
+      update((s) => { if (s.viPanel) { s.viPanel.busy = true; s.viPanel.err = ''; } });
+      try {
+        const user = viContextText(entry, bible, viContextFromCanvas(nm), zh);
+        const out = await aiComplete({ system: viSystemPrompt(zh), user: user });
+        const vi = parseViJson(out);
+        if (!vi) throw new Error(zh ? '模型没有返回可解析的档案 JSON' : 'model returned no parseable JSON');
+        vi.updatedAt = Date.now();
+        vi.locked = true;
+        viSaveRecord(kind, nm, vi);
+        update((s) => { if (s.viPanel) { s.viPanel.busy = false; } });
+        return vi;
+      } catch (e) {
+        const msg = hostRpcErrText ? hostRpcErrText(e) : String((e && e.message) || e);
+        update((s) => { if (s.viPanel) { s.viPanel.busy = false; s.viPanel.err = msg; } });
+        toast(T('viFail').replace('{e}', msg));
+        return null;
+      }
+    }
+    function openViPanel(t) {
+      const target = t || {};
+      const kind = target.kind || 'character';
+      const nm = String(target.name || '').trim();
+      if (!S.activeId) { toast(T('viNeedProject')); return; }
+      update((s) => { s.viPanel = { kind: kind, name: nm, busy: false, err: '', preview: false }; });
+      if (!nm) return;
+      // 没档案就自动推一次（用户点开即用）；有档案则只读展示，避免误覆盖已锁定档案
+      if (!viRecordOf(kind, nm)) inferVisualIdentity(kind, nm);
+    }
+    function closeViPanel() { update((s) => { s.viPanel = null; }); }
+    function viTogglePreview() { update((s) => { if (s.viPanel) s.viPanel.preview = !s.viPanel.preview; }); }
+    function viCompiledOf(kind, name, zh) {
+      const pid = S.activeId;
+      if (!pid) return '';
+      const bible = loadBible(pid);
+      const i = viEntryIndex(bible, kind, name);
+      if (i < 0) return '';
+      const entry = bible[viKeyOf(kind)][i];
+      return compileViPrompt(Object.assign({}, entry, { kind: kind }), bible, zh);
+    }
+    /** 写入设定图节点：按档案编译的提示词建图片节点（与铺开时自动建的设定图节点同规格）。 */
+    function viToSheetNode(kind, name) {
+      const pid = S.activeId;
+      if (!pid) { toast(T('viNeedProject')); return null; }
+      const nm = String(name || '').trim();
+      if (!nm) { toast(T('viNeedName')); return null; }
+      const bible = loadBible(pid);
+      const spec = assetSheetNodeSpec(kind, nm, bible, effLang() !== 'en');
+      const nd = addNodeAt('image', { x: worldCenter().x - 180, y: worldCenter().y - 120, ratio: spec.ratio || '16:9' });
+      if (!nd) return null;
+      update((s) => {
+        const g = s.graph.nodes[nd.id];
+        if (!g) return;
+        g.data.label = spec.label;
+        g.data.prompt = spec.prompt;
+        g.data.ratio = spec.ratio || '16:9';
+        g.data.size = spec.size || '2K';
+      });
+      flushSave();
+      toast(T('viToSheetDone'));
+      return nd.id;
+    }
+    function viClearRecord(kind, name) {
+      const pid = S.activeId;
+      if (!pid) return;
+      const key = viKeyOf(kind);
+      const bible = loadBible(pid);
+      const i = viEntryIndex(bible, kind, name);
+      if (i < 0) return;
+      const arr = [...(bible[key] || [])];
+      const e = Object.assign({}, arr[i]);
+      delete e.vi;
+      arr[i] = e;
+      saveBible(pid, Object.assign({}, bible, { [key]: arr }));
+      update((s) => { s.bibleTick++; s.assetsTick++; });
+      toast(T('viCleared'));
+    }
+
     /** 设定集保存：本地立即写，推送防抖（输入过程中不逐字打网络）。 */
     function saveBible(pid, b) {
       if (!pid) return;
@@ -6699,7 +7089,10 @@ body[data-ds-dark-theme] .dshic-pick-item.is-on{background:color-mix(in srgb,var
         return seg.replace(/\s+/g, ' ').trim();
       })();
       const style = bibleStyleAnchor(bible) || (zh ? '写实电影感' : 'realistic cinematic');
-      const lookLine = look ? look : (zh ? '（设定集未提供外观描述：按名称与常识绘制，保持朴素克制）' : '(no appearance notes in the bible: keep it plain and coherent)');
+      // 视觉身份档案（VI）优先：档案锁定后它就是唯一形象事实，设定集里的自由描述只做补充。
+      const viEnt = matchBibleEntity(name, bible);
+      const viLook = (viEnt && viEnt.vi) ? viLookLine(normalizeVI(viEnt.vi), zh) : '';
+      const lookLine = viLook || (look ? look : (zh ? '（设定集未提供外观描述：按名称与常识绘制，保持朴素克制）' : '(no appearance notes in the bible: keep it plain and coherent)'));
       if (kind === 'scene') {
         return zh
           ? [
@@ -18331,6 +18724,10 @@ function queueThumb(assetId) {
           ...(n.type === 'image' || n.type === 'video'
             ? [{ label: T('copyPrompt'), icon: 'copy', fn: () => copyNodePrompt(n) }]
             : []),
+          // 设定图节点 → 视觉身份档案（外形推导 / 锁定 / 重写提示词）
+          ...(n.type === 'image' && viTargetFromLabel(n.data && n.data.label)
+            ? [{ label: T('viMenu'), icon: 'spark', fn: () => openViPanel(viTargetFromLabel(n.data.label)) }]
+            : []),
           ...(canRun ? [{ label: T('runNode'), icon: 'play', fn: () => { runGenNode(n); } }] : []),
           ...(batchTargets.length && (n.type === 'group' || (S.sel.has(n.id) && S.sel.size >= 2))
             ? [{
@@ -25238,6 +25635,85 @@ const DIRECTOR_KEY_HELP = [
       ];
     }
     /** 「设定为角色 / 道具 / 场景图」选择器：把当前图片资产挂进设定集条目（铺开继承的唯一依据）。 */
+    /** 角色视觉身份档案面板：展示分层字段（原文/推导/默认）、原文事实与禁止项、编译后的提示词。 */
+    function ViPanel() {
+      const pk = S.viPanel;
+      if (!pk) return null;
+      const zh = effLang() !== 'en';
+      const kind = pk.kind || 'character';
+      const nm = String(pk.name || '').trim();
+      const bible = loadBible(S.activeId);
+      const i = viEntryIndex(bible, kind, nm);
+      const entry = i >= 0 ? bible[viKeyOf(kind)][i] : { name: nm, desc: '', assetIds: [] };
+      const vi = normalizeVI(entry.vi);
+      const level = vi ? (vi.level || viInfoLevel(vi, entry.desc)) : viInfoLevel(null, entry.desc);
+      const compiled = vi ? compileViPrompt(Object.assign({}, entry, { kind: kind }), bible, zh) : '';
+      const keys = vi ? VI_FIELD_KEYS.filter((k) => vi.fields[k]) : [];
+      const setName = (v) => update((s) => { if (s.viPanel) s.viPanel.name = v; });
+      return h('div', { className: 'dshic-modal-overlay', onPointerDown: (e) => { if (e.target === e.currentTarget) closeViPanel(); } },
+        h('div', { className: 'dshic-modal dshic-vi', 'data-role': 'vi-panel' },
+          h('div', { className: 'dshic-modal-title' }, T('viTitle') + (nm ? ' · ' + nm : '')),
+          h('div', { className: 'dshic-vi-body' },
+            h('div', { className: 'dshic-hint' }, T('viSub')),
+            h('div', { className: 'dshic-vi-tags' },
+              h('span', { className: 'dshic-vi-chip is-' + String(level).toLowerCase() }, T('viLevel').replace('{l}', level)),
+              vi ? h('span', { className: 'dshic-vi-chip' }, vi.mode === 'strict' ? T('viModeStrict') : T('viModeDesign')) : null,
+              vi ? h('span', { className: 'dshic-vi-chip' }, vi.locked ? T('viLocked') : T('viUnlocked')) : null,
+            ),
+            !nm ? h('div', { className: 'dshic-field' },
+              h('span', { className: 'dshic-field-label' }, T('bibleNamePh')),
+              h('input', {
+                className: 'dshic-input', placeholder: T('bibleNamePh'), autoFocus: true,
+                onChange: (e) => setName(e.target.value),
+                onPointerDown: (e) => e.stopPropagation(),
+              })) : null,
+            pk.busy ? h('div', { className: 'dshic-hint' }, h('span', { className: 'dshic-spin' }), ' ' + T('viInferring')) : null,
+            pk.err ? h('div', { className: 'dshic-hint', style: { color: 'var(--dsw-alias-state-error-primary)' } }, pk.err) : null,
+            (!vi && !pk.busy) ? h('div', { className: 'dshic-hint' }, T('viEmpty')) : null,
+            vi ? h('div', { className: 'dshic-vi-tags' }, keys.map((k) => h('span', {
+              key: 'c' + k, className: 'dshic-vi-chip is-' + String(vi.fields[k].src || 'INFERRED').toLowerCase(),
+            }, viFieldLabel(k, zh) + ' · ' + viSrcLabel(vi.fields[k].src, zh)))) : null,
+            vi ? h('div', { className: 'dshic-vi-sec' }, T('viFields')) : null,
+            vi ? h('div', { className: 'dshic-vi-grid' }, keys.map((k) => h('div', { key: 'g' + k, style: { display: 'contents' } },
+              h('div', { className: 'dshic-vi-k' }, viFieldLabel(k, zh)),
+              h('div', { className: 'dshic-vi-v' }, vi.fields[k].v)))) : null,
+            (vi && vi.original.length) ? h('div', null,
+              h('div', { className: 'dshic-vi-sec' }, T('viOriginal')),
+              h('ul', { className: 'dshic-vi-lines' }, vi.original.map((t, x) => h('li', { key: 'o' + x }, t)))) : null,
+            (vi && vi.original.length === 0) ? h('div', { className: 'dshic-hint' }, T('viNoOriginal')) : null,
+            (vi && vi.forbidden.length) ? h('div', null,
+              h('div', { className: 'dshic-vi-sec' }, T('viForbidden')),
+              h('ul', { className: 'dshic-vi-lines' }, vi.forbidden.map((t, x) => h('li', { key: 'f' + x }, t)))) : null,
+            compiled ? h('div', null,
+              h('div', { className: 'dshic-row' },
+                h('div', { className: 'dshic-vi-sec' }, T('viCopyPrompt')),
+                h('div', { className: 'dshic-flex' }),
+                h('button', {
+                  type: 'button', className: 'dshic-mini',
+                  onPointerDown: (e) => e.stopPropagation(),
+                  onClick: () => copyText(compiled, T('copyPromptDone')),
+                }, Ic('copy', 11), T('viCopyPrompt'))),
+              h('pre', { className: 'dshic-vi-pre' }, compiled)) : null,
+            h('div', { className: 'dshic-hint' }, T('viHint')),
+          ),
+          h('div', { className: 'dshic-modal-actions' },
+            h('button', {
+              type: 'button', className: 'dshic-btn dshic-primary', disabled: !nm || pk.busy,
+              onPointerDown: (e) => e.stopPropagation(), onClick: () => inferVisualIdentity(kind, nm),
+            }, vi ? T('viReinfer') : T('viInfer')),
+            vi ? h('button', {
+              type: 'button', className: 'dshic-btn', disabled: !nm,
+              onPointerDown: (e) => e.stopPropagation(), onClick: () => viToSheetNode(kind, nm),
+            }, T('viToSheet')) : null,
+            vi ? h('button', {
+              type: 'button', className: 'dshic-btn dshic-btn-outline',
+              onPointerDown: (e) => e.stopPropagation(), onClick: () => viClearRecord(kind, nm),
+            }, T('viClear')) : null,
+            h('button', { type: 'button', className: 'dshic-btn dshic-btn-outline', onClick: closeViPanel }, T('viClose')),
+          ),
+        ));
+    }
+
     function EntityPicker() {
       const pk = S.entityPicker;
       if (!pk) return null;
@@ -27038,6 +27514,14 @@ const DIRECTOR_KEY_HELP = [
                   onClick: () => saveToLib(item),
                 }, Ic('users', 11), inLib(item.name) ? T('bibleInLib') : T('bibleSaveToLib'))
               : null,
+            key === 'characters'
+              ? h('button', {
+                  type: 'button', className: cls('dshic-mini', item.vi && 'is-active'),
+                  title: item.vi ? T('viLocked') : T('viInfer'),
+                  onPointerDown: (e) => e.stopPropagation(),
+                  onClick: () => openViPanel({ kind: 'character', name: item.name }),
+                }, Ic('spark', 11), item.vi ? T('viLocked') : T('viInfer'))
+              : null,
             h('input', {
               className: 'dshic-input', style: { flex: 1, minWidth: 0 }, value: item.desc || '',
               placeholder: T('bibleDescPh'),
@@ -27966,6 +28450,7 @@ const DIRECTOR_KEY_HELP = [
         h(ProjectNameDialog),    // 新建 / 重命名项目（空名校验）
         S.menu ? h(ContextMenu, { menu: S.menu }) : null,
         S.entityPicker ? h(EntityPicker) : null,
+        S.viPanel ? h(ViPanel) : null,
         h(ProductionConsole),
         S.lightbox ? h(Lightbox) : null,
         S.supportOpen ? h(SupportDialog) : null,
@@ -28867,6 +29352,8 @@ const DIRECTOR_KEY_HELP = [
             batchSelectionByType, openBatchConsole, batchExpand, batchExpandSelection, parseScriptScenes,
             // 把图设为/替换角色·道具·场景图（设定集 assetIds 绑定）+ 提示词复制，供回归测试直接驱动
             openEntityPicker, bindAssetToBibleEntry, markAssetAsEntity, copyNodePrompt, bibleEntryList,
+            // 角色视觉身份档案（VI）：分层外貌事实 + 提示词编译，供回归测试直接驱动
+            openViPanel, viInfoLevel, viRouteMode, viLookLine, viNegative, compileViPrompt, parseViJson, viSystemPrompt, normalizeVI, emptyVI, viTargetFromLabel, viFieldLabel,
             // 资产批量导入落点：现有节点最右侧之外按列铺开（一列 ≤5，零重叠），供回归测试直接断言
             layoutBatchColumns,
             // 资产页分页跳转（页码输入 → 0-based 页；非法文本 null、越界夹取）
