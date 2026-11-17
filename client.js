@@ -1433,6 +1433,12 @@ function revealCanvasInRight() {
       'voiceExtractDone': '已存为声音参考：{name}',
       'voiceExtractSrc': '提取自',
       'expandScenes': '铺开到场景',
+  'batchExpandScripts': '铺开选中剧本（{n}）',
+  'batchExpandBoards': '铺开选中分镜（{n}）',
+  'batchExpandAll': '铺开选中剧本与分镜（{n}）',
+  'batchExpandHint': '铺开 = 新建节点并连线：剧本按「【场N】」拆成 文本 → 分镜表 组合；分镜表按镜头铺成 视频/图片 节点',
+  'batchExpandDone': '已铺开：{s} 个剧本 → {c} 个场景 · {b} 个分镜表',
+  'batchExpandNothing': '没有可铺开的内容：剧本需按「【场N】场景名」分场书写，分镜表需先生成镜头',
       'expandScenesDone': '已铺开 {n} 个场景（每场：文本节点 → 分镜表 已连线）',
       'expandNeedScenes': '未识别到场景分隔标记——剧本需按「【场N】场景名（地点·时间）」分场书写（重新生成或手动补分场标题）',
       'autoShots': '自动（按内容节拍）',
@@ -2810,6 +2816,12 @@ function revealCanvasInRight() {
       'voiceExtractDone': 'Saved voice reference: {name}',
       'voiceExtractSrc': 'Extracted from',
       'expandScenes': 'Expand to scenes',
+  'batchExpandScripts': 'Expand selected scripts ({n})',
+  'batchExpandBoards': 'Expand selected storyboards ({n})',
+  'batchExpandAll': 'Expand selected scripts + storyboards ({n})',
+  'batchExpandHint': 'Expand = create nodes and wire them: scripts split by 【SCENE N】 into text → storyboard pairs; storyboards expand into video/image nodes per shot',
+  'batchExpandDone': 'Expanded: {s} scripts → {c} scenes · {b} storyboards',
+  'batchExpandNothing': 'Nothing to expand: scripts need 【SCENE N】 headings, storyboards need shots first',
       'expandScenesDone': 'Expanded {n} scenes (each: text node → storyboard, wired)',
       'expandNeedScenes': 'No scene separators found — the script must use "【SCENE N】name (location · time)" per-scene headers (regenerate or add scene headers manually)',
       'autoShots': 'Auto (by content beats)',
@@ -17409,6 +17421,55 @@ function queueThumb(assetId) {
       flushSave();
       toast(T('expandScenesDone').replace('{n}', String(scenes.length)));
     }
+    /** 选区批量铺开：剧本 → 场景组（文本 → 分镜表，连线）；分镜表 → 镜头 视频/图片 节点。
+     *  多个剧本的输出统一排在选区右侧，按「竖向分带」堆叠，互不重叠；分镜表逐张串行（内部要读资产索引）。 */
+    async function batchExpandSelection(ids) {
+      const list = (ids || []).map((id) => S.graph.nodes[id]).filter((n) => n && !n.data?.hidden);
+      const scripts = list.filter((n) => n.type === 'script');
+      const boards = list.filter((n) => n.type === 'storyboard');
+      if (!scripts.length && !boards.length) { toast(T('batchExpandNothing')); return { scenes: 0, boards: 0, scripts: 0 }; }
+      // —— 剧本 → 场景组 ——
+      let sceneRows = 0, scriptDone = 0;
+      if (scripts.length) {
+        const baseX = Math.max(...scripts.map((n) => n.x + (n.w || 360))) + 160;
+        let y = Math.min(...scripts.map((n) => n.y));
+        update((s) => {
+          for (const n of scripts) {
+            const scenes = parseScriptScenes(n.data.output);
+            if (!scenes || scenes.length < 2) continue;
+            scriptDone++;
+            for (const sc of scenes) {
+              const label = String(sc.title || '').slice(0, 40);
+              const tx = newNode('text', { x: baseX, y });
+              tx.data.label = label;
+              tx.data.text = String(sc.text || '').trim();
+              s.graph.nodes[tx.id] = tx;
+              const sb = newNode('storyboard', { x: baseX + 360, y });
+              sb.data.label = label;
+              s.graph.nodes[sb.id] = sb;
+              s.graph.edges.push({ id: uid('e'), fromNode: tx.id, fromPort: 'out', toNode: sb.id, toPort: 'script' });
+              y += 320;
+              sceneRows++;
+            }
+            y += 120;
+          }
+          s.sel = new Set();
+        });
+        if (sceneRows) { pushHistory(); flushSave(); }
+      }
+      // —— 分镜表 → 画布（逐张，避免并发读资产索引互相干扰）——
+      let boardDone = 0;
+      for (const n of boards) {
+        const shots = (n.data && n.data.shots) || [];
+        if (!shots.length) continue;
+        await expandStoryboard(n);
+        boardDone++;
+      }
+      if (!sceneRows && !boardDone) { toast(T('batchExpandNothing')); return { scenes: 0, boards: 0, scripts: scriptDone }; }
+      const summary = T('batchExpandDone').replace('{s}', String(scriptDone)).replace('{c}', String(sceneRows)).replace('{b}', String(boardDone));
+      toast(summary);
+      return { scenes: sceneRows, boards: boardDone, scripts: scriptDone };
+    }
     /** 剧本节点：节点内只显示结果（正文预览可滚动）；创作意图与生成动作在 GenComposer 面板里。 */
     function ScriptNodeBody({ n }) {
       const running = n.data.aiStatus === 'running';
@@ -18187,8 +18248,16 @@ function queueThumb(assetId) {
         const downloadable = n.type === 'group'
           ? batchExpand([n.id]).filter((x) => (x.type === 'finalcut' ? !!(x.data && (x.data.assetId || x.data.fcAssetId)) : !!(x.data && x.data.assetId))).length
           : 0;
+        // 选区批量铺开：右键点在选中的剧本/分镜上时，一次性把整批铺到画布
+        const expandTargets = batchExpand(scopeIds).filter((x) => x && (x.type === 'script' || x.type === 'storyboard'));
+        const expandKey = expandTargets.some((x) => x.type === 'script')
+          ? (expandTargets.some((x) => x.type === 'storyboard') ? 'batchExpandAll' : 'batchExpandScripts')
+          : 'batchExpandBoards';
         const items = [
           { label: T('copyNode'), icon: 'plus', fn: () => { update((s) => { s.sel = new Set([n.id]); }); duplicateSelection(); } },
+          ...(expandTargets.length
+            ? [{ label: T(expandKey).replace('{n}', String(expandTargets.length)), icon: 'expandAll', fn: () => { batchExpandSelection(expandTargets.map((x) => x.id)); } }]
+            : []),
           ...(n.type === 'image' && n.data && n.data.assetId
             ? [{ label: T('bindMenu'), icon: 'tag', fn: () => openEntityPicker({ assetId: n.data.assetId, nodeId: n.id }) }]
             : []),
@@ -18248,6 +18317,18 @@ function queueThumb(assetId) {
       if (selByType.size) {
         const selTotal = [...selByType.values()].reduce((a, v) => a + v.length, 0);
         batchItems.push(h('div', { key: 'batch-sep-top', className: 'dshic-menu-sep' }));
+        // 铺开（批量）：与「批量生成」分开——铺开改的是画布结构（新建节点+连线），生成才跑模型。
+        const selNodes = [...(S.sel || [])].map((id) => S.graph.nodes[id]).filter(Boolean);
+        const selScripts = selNodes.filter((x) => x.type === 'script');
+        const selBoards = selNodes.filter((x) => x.type === 'storyboard');
+        const expandCount = selScripts.length + selBoards.length;
+        if (expandCount) {
+          const expandKey = (selScripts.length && selBoards.length) ? 'batchExpandAll' : (selScripts.length ? 'batchExpandScripts' : 'batchExpandBoards');
+          batchItems.push(h('button', {
+            key: 'batch-expand', type: 'button', className: 'dshic-menu-item', title: T('batchExpandHint'),
+            onClick: () => { batchExpandSelection([...selScripts, ...selBoards].map((x) => x.id)); closeMenu(); },
+          }, Ic('expandAll', 13), T(expandKey).replace('{n}', String(expandCount))));
+        }
         for (const [type, ids] of selByType) {
           batchItems.push(h('button', {
             key: 'batch-type-' + type, type: 'button', className: 'dshic-menu-item', title: T('batchSelHint'),
@@ -28520,7 +28601,7 @@ const DIRECTOR_KEY_HELP = [
             // 拖拽落点建点（尊重鼠标位置）与自动排布（一类型一列）：供回归测试直接驱动
             addNodeAtPoint, autoArrangeNodes,
             // 选区批量执行：按类型分组（空白右键菜单入口）+ 打开执行台，供回归测试直接驱动
-            batchSelectionByType, openBatchConsole, batchExpand,
+            batchSelectionByType, openBatchConsole, batchExpand, batchExpandSelection, parseScriptScenes,
             // 把图设为/替换角色·道具·场景图（设定集 assetIds 绑定）+ 提示词复制，供回归测试直接驱动
             openEntityPicker, bindAssetToBibleEntry, markAssetAsEntity, copyNodePrompt, bibleEntryList,
             // 资产批量导入落点：现有节点最右侧之外按列铺开（一列 ≤5，零重叠），供回归测试直接断言
