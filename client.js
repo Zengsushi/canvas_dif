@@ -4055,9 +4055,12 @@ body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 .dshic-novel, .dshic-toolbar, .dshic-main{
   --dsw-alias-bg-base:#f5f6f8; --dsw-alias-bg-layer-1:#ffffff; --dsw-alias-bg-layer-2:#edeff3;
   --dsw-alias-label-primary:#1b1c1f; --dsw-alias-label-secondary:#5c626c;
-  --dsw-alias-border-l1:#e4e6eb; --dsw-alias-border-l2:#d2d6dd;
-  --dsw-alias-brand-primary:#2b6dfd;
+  --dsw-alias-border-l1:#e4e6eb; --dsw-alias-border-l2:#d2d6dd; --dsw-alias-border-secondary:#c9cdd6;
+  --dsw-alias-bg-layer-3:#e7eaf0; --dsw-alias-interactive-bg-hover:#eaeef5;
+  --dsw-alias-label-tertiary:#7e8598;
+  --dsw-alias-brand-primary:#2b6dfd; --dsw-alias-brand-warning:#c77a00;
   --dsw-alias-state-error-primary:#c0423b; --dsw-alias-state-success-primary:#12a150;
+  --dsw-alias-state-warn-primary:#b57200; --dsw-alias-state-warning-primary:#b57200;
   color-scheme:light;
 }
 body[data-ds-dark-theme] .dshic-novel,
@@ -4065,9 +4068,12 @@ body[data-ds-dark-theme] .dshic-toolbar,
 body[data-ds-dark-theme] .dshic-main{
   --dsw-alias-bg-base:#121316; --dsw-alias-bg-layer-1:#1b1c20; --dsw-alias-bg-layer-2:#26282d;
   --dsw-alias-label-primary:#e9ebef; --dsw-alias-label-secondary:#9aa1ac;
-  --dsw-alias-border-l1:#2b2e34; --dsw-alias-border-l2:#3a3e46;
-  --dsw-alias-brand-primary:#4c8dff;
+  --dsw-alias-border-l1:#2b2e34; --dsw-alias-border-l2:#3a3e46; --dsw-alias-border-secondary:#4a4f58;
+  --dsw-alias-bg-layer-3:#33373e; --dsw-alias-interactive-bg-hover:#2e3238;
+  --dsw-alias-label-tertiary:#868d99;
+  --dsw-alias-brand-primary:#4c8dff; --dsw-alias-brand-warning:#f0a53a;
   --dsw-alias-state-error-primary:#e06a63; --dsw-alias-state-success-primary:#33b562;
+  --dsw-alias-state-warn-primary:#e0a23a; --dsw-alias-state-warning-primary:#e0a23a;
   color-scheme:dark;
 }
 /* 主按钮：底色用品牌色、文字恒为白 —— 宿主 brand 若为白色（浅色强调），
@@ -4134,6 +4140,11 @@ body[data-ds-dark-theme] .dshic-novel .dshic-nv-btn.is-primary:hover{background:
   box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);}
 .dshic-nv-input.is-num{flex:none;width:96px;text-align:center;padding:0 8px;}
 select.dshic-nv-input{flex:none;width:auto;min-width:170px;padding-right:8px;cursor:pointer;}
+/* 原生下拉展开项不受父级容器继承，必须显式给底色与字色，否则浅底白字看不见 */
+.dshic-novel .dshic-nv-input option,
+.dshic-novel .dshic-nv-select option{background:#ffffff;color:#1b1c1f;}
+body[data-ds-dark-theme] .dshic-novel .dshic-nv-input option,
+body[data-ds-dark-theme] .dshic-novel .dshic-nv-select option{background:#1b1c20;color:#e9ebef;}
 .dshic-nv-textarea{width:100%;min-height:150px;resize:vertical;padding:10px 12px;border-radius:10px;
   border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);
   color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.65;}
