@@ -12192,7 +12192,12 @@ function queueThumb(assetId) {
     let commitViewTimer = null;
 
     let notifyCount = 0; // 测试/诊断用：全树通知次数（拖动帧内必须不增长）
-    function notify() { notifyCount++; S.tick++; for (const fn of listeners) fn(); }
+    // 轻量性能计数（浏览器控制台可见：window.__DSH_IC_PERF__）：
+    // notify=通知次数 / canvasRender=画布重渲 / edgeRender=边层重绘 / minimapRender=小地图重绘。
+    // memo 生效时 edgeRender/minimapRender 应显著少于 canvasRender。
+    const perfCounters = { notify: 0, canvasRender: 0, edgeRender: 0, minimapRender: 0 };
+    try { if (typeof window !== 'undefined') window.__DSH_IC_PERF__ = perfCounters; } catch { /* 忽略 */ }
+    function notify() { notifyCount++; perfCounters.notify++; S.tick++; for (const fn of listeners) fn(); }
     function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
     function update(fn, opts) {
       const edgesBefore = S.graph ? S.graph.edges : null; // 引用比较：fn 换了数组说明发生过边增删
@@ -12414,9 +12419,21 @@ function queueThumb(assetId) {
       // 节点在屏幕上移动了：紧贴节点下方弹出的生成面板必须同步跟随（用节点真实 DOM 矩形计算）
       try { if (composerReposition) composerReposition(); } catch { /* 定位失败不影响画布 */ }
     }
+    // 视图落到 DOM 的写操作合并到一帧：滚轮/触控板一次手势会派发几十个事件，
+    // 逐个同步写 transform + 背景 + 面板定位会造成样式重算风暴（缩放手感发涩的主因）。
+    let viewSoonPending = false;
+    let wheelIdleTimer = 0; // 滚轮缩放结束后的合成层释放定时器
+    function applyViewSoon() {
+      if (viewSoonPending) return;
+      viewSoonPending = true;
+      const run = () => { viewSoonPending = false; applyViewToDom(); };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run);
+      else setTimeout(run, 16);
+    }
     function setView(x, y, scale, commit) {
       V.x = x; V.y = y; V.scale = scale;
-      applyViewToDom();
+      // 落盘的提交动作要求当场一致（否则 Minimap/截图类逻辑读到旧 transform）；其余走合并帧
+      if (commit) { viewSoonPending = false; applyViewToDom(); } else applyViewSoon();
       if (commitTimer) { clearTimeout(commitTimer); commitTimer = null; }
       if (commit) {
         S.graph.view = { x, y, scale };
@@ -18239,7 +18256,12 @@ function queueThumb(assetId) {
       return null;
     }
 
-    function EdgeLayer() {
+    const EdgeLayerMemo = memoComponent(EdgeLayer, (a, b) => a.sig === b.sig);
+    // 【性能】先前每次 notify（含每次按键）都会重建全部边的 3 个 SVG 节点并重算贝塞尔路径。
+    // 现在由 CanvasPage 传入几何签名 sig，签名不变就整层跳过（拖动期间路径本来就是命令式更新的）。
+    function EdgeLayer({ sig }) {
+      void sig;
+      perfCounters.edgeRender++;
       const setTemp = useCallback((el) => { tempEdgeEl = el; }, []);
       return h('svg', { className: 'dshic-edges' },
         h('path', { ref: setTemp, className: 'dshic-edge-temp', style: { display: 'none' } }),
@@ -27514,12 +27536,25 @@ const DIRECTOR_KEY_HELP = [
     }
 
     /** 小地图：节点总览 + 视口指示 + 点击/拖拽导航。 */
-    function Minimap() {
+    // 小地图每次 notify 都要遍历节点 + 读一次容器矩形（强制同步重排）。矩形缓存 200ms，
+    // 组件再按签名 memo：正文编辑这类不改几何的通知不会再触发它重算。
+    const MinimapMemo = memoComponent(Minimap, (a, b) => a.sig === b.sig);
+    let mmRectCache = null;
+    function minimapRect() {
+      const now = Date.now();
+      if (mmRectCache && now - mmRectCache.t < 200) return mmRectCache;
+      const r = containerRect();
+      mmRectCache = { t: now, left: r.left, top: r.top, width: r.width, height: r.height };
+      return mmRectCache;
+    }
+    function Minimap({ sig }) {
+      void sig;
+      perfCounters.minimapRender++;
       const nodes = Object.values(S.graph.nodes);
       const dragRef = useRef(false);
       if (!nodes.length || !liveCanvasEl()) return null;
       const MW = 160, MH = 100, pad = 6;
-      const r = containerRect();
+      const r = minimapRect();
       let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
       for (const nd of nodes) {
         bx0 = Math.min(bx0, nd.x); by0 = Math.min(by0, nd.y);
@@ -27771,12 +27806,34 @@ const DIRECTOR_KEY_HELP = [
           const factor = Math.pow(1.0015, -e.deltaY);
           const ns = clamp(V.scale * factor, 0.15, 3);
           const wx = (sx - V.x) / V.scale, wy = (sy - V.y) / V.scale;
+          // 缩放期间把 world 提成合成层（否则每个滚轮步都要重绘整张画布），停手 220ms 后释放
+          try {
+            const w = liveWorldEl();
+            if (w) {
+              w.classList.add('is-interacting');
+              if (wheelIdleTimer) clearTimeout(wheelIdleTimer);
+              wheelIdleTimer = setTimeout(() => {
+                wheelIdleTimer = 0;
+                try { if (w && drag.mode !== 'node' && drag.mode !== 'pan') w.classList.remove('is-interacting'); } catch { /* 忽略 */ }
+              }, 220);
+            }
+          } catch { /* 图层提升失败不影响缩放 */ }
           setView(sx - wx * ns, sy - wy * ns, ns, false);
         };
         el.addEventListener('wheel', fn, { passive: false });
         return () => el.removeEventListener('wheel', fn);
       }, []);
+      perfCounters.canvasRender++;
       const nodes = Object.values(S.graph.nodes);
+      // 边的重绘签名（端点 id/端口 + 两端节点几何 + 类型）与小地图签名（全部节点几何 + 视图 + 选中）
+      // 一次遍历算齐：变了才重绘对应整层，正文编辑这类不碰几何的更新不再白算 SVG 路径。
+      const selKey = [...S.sel].sort().join(',');
+      const geoParts = [];
+      for (const nd of nodes) geoParts.push(nd.id, nd.x, nd.y, nd.w || 0, nd.h || 0, nd.type || '', '');
+      const edgeParts = [];
+      for (const ed of S.graph.edges) edgeParts.push(ed.id, ed.fromNode, ed.fromPort || '', ed.toNode, ed.toPort || '', '');
+      const edgeLayerSig = selKey + ':' + (S.selEdge || '') + ':' + edgeParts.join(',') + ':' + geoParts.join(',');
+      const minimapSig = V.x + ',' + V.y + ',' + V.scale + '|' + selKey + '|' + geoParts.join(',');
       // 媒体节点 memo 比较用连线签名：一次遍历算好，避免每个节点各自 O(E) 扫描
       const edgeSigById = new Map();
       for (const e of S.graph.edges) {
@@ -27874,7 +27931,7 @@ const DIRECTOR_KEY_HELP = [
               // React 卸载时会以 null 调 ref：绝不能把别处还在用的 worldEl 清空
           ref: (el) => { if (!el) return; worldEl = el; applyViewToDom(); },
             },
-              h(EdgeLayer),
+              h(EdgeLayerMemo, { sig: edgeLayerSig }),
               nodes.filter((nd) => nd.type === 'group').map((n) => h(NodeShell, { key: n.id, n, edgeSig: '' })),
               nodes.filter((nd) => nd.type !== 'group').map((n) => h(NodeShell, { key: n.id, n, edgeSig: edgeSigById.get(n.id) || '' })),
               h('div', {
@@ -27884,7 +27941,7 @@ const DIRECTOR_KEY_HELP = [
               h('div', { className: 'dshic-guide-v', style: { display: 'none', zIndex: 9999 }, ref: (el) => { vGuidEl = el; } }),
               h('div', { className: 'dshic-guide-h', style: { display: 'none', zIndex: 9999 }, ref: (el) => { hGuidEl = el; } }),
             ),
-            h(Minimap),
+            h(MinimapMemo, { sig: minimapSig }),
             // 生成面板（单例）：紧贴选中节点下方弹出；只有点击节点内容区才打开
             (S.composerId && S.sel.has(S.composerId) && S.graph.nodes[S.composerId])
               ? h(GenComposer, { key: S.composerId, nodeId: S.composerId })
