@@ -5472,6 +5472,10 @@ export function apply(ctx) {
         const patch = (args && args.patch) || {};
         const next = {
           ...cur,
+          ...(patch.prompt !== undefined ? { prompt: String(patch.prompt || '') } : {}),
+          ...(patch.entity !== undefined ? { entity: patch.entity ? String(patch.entity) : undefined } : {}),
+          ...(patch.entities !== undefined ? { entities: Array.isArray(patch.entities) ? patch.entities : undefined } : {}),
+          ...(patch.nodeLabel !== undefined ? { nodeLabel: patch.nodeLabel ? String(patch.nodeLabel) : undefined } : {}),
           ...(patch.name !== undefined ? { name: String(patch.name).slice(0, 80) } : {}),
           ...(patch.category !== undefined ? { category: String(patch.category || 'general') } : {}),
           ...(patch.tags !== undefined ? { tags: Array.isArray(patch.tags) ? patch.tags.map(String).filter(Boolean).slice(0, 20) : [] } : {}),
@@ -7927,4 +7931,3 @@ function assetsAutobindProject(args) {
     },
   };
 }
-
