@@ -4111,6 +4111,9 @@ select.dshic-nv-input{flex:none;width:auto;min-width:170px;padding-right:8px;cur
 .dshic-nv-field{display:flex;flex-direction:column;gap:5px;min-width:120px;}
 .dshic-nv-field .dshic-nv-input{width:100%;height:30px;}
 .dshic-nv-label{font-size:11.5px;color:var(--dsw-alias-label-secondary);}
+    .dshic-nv-field.is-crawlnum{flex:none;width:104px;min-width:104px;}
+    .dshic-nv-field.is-crawlnum .dshic-nv-input{width:104px;}
+    .dshic-nv-bookview-bar{display:flex;align-items:flex-end;gap:10px;padding:8px 12px;border-bottom:1px solid var(--dsw-alias-border-l1);}
 .dshic-nv-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
 .dshic-nv-searchrow{display:flex;align-items:center;gap:9px;}
 .dshic-nv-chiprow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
@@ -22902,16 +22905,50 @@ const DIRECTOR_KEY_HELP = [
     // 状态统一放在 S.novel（update() 驱动重渲染）；输入框内容放 NOVEL_SCRATCH，
     // 走非受控 input + onInput，避免每次按键都触发整棵树重渲染。
     // ============================================================
+    const NOVEL_CRAWL_MAX_KEY = 'dsh-ic:novel:crawlMax';
+    const NOVEL_CRAWL_MAX_DEFAULT = 100;
     const NOVEL_SCRATCH = {
       bookFilter: '', importTitle: '', importText: '',
-      searchQ: '', crawlUrl: '', crawlMax: '100',
+      searchQ: '', crawlUrl: '', crawlMax: String(NOVEL_CRAWL_MAX_DEFAULT),
       sites: [], browseSite: '', browseCategory: '',
       plot: { chapter_start: 1, chapter_end: '', target_words: 2000, max_chapters: 50, chapter_count: 10, target_words_origin: 2000 },
     };
+    // 抓取章数持久化：刷新页面 / 重开面板后仍用上次设置的值（留空按默认 100 章）。
+    try {
+      const savedCrawlMax = parseInt(localStorage.getItem(NOVEL_CRAWL_MAX_KEY) || '', 10);
+      if (savedCrawlMax > 0) NOVEL_SCRATCH.crawlMax = String(Math.min(5000, savedCrawlMax));
+    } catch (e) { /* localStorage 不可用时用默认值 */ }
     const novelTimers = { crawl: null, job: null };
     function novelStopPoll(which) {
       const t = novelTimers[which];
       if (t) { clearInterval(t); novelTimers[which] = null; }
+    }
+    /** 本次抓取/续抓的章数上限：留空或非法值回落默认值，夹在 1..5000。 */
+    function novelCrawlMax() {
+      const v = parseInt(NOVEL_SCRATCH.crawlMax, 10);
+      if (!(v > 0)) return NOVEL_CRAWL_MAX_DEFAULT;
+      return Math.max(1, Math.min(5000, v));
+    }
+    function novelSetCrawlMax(raw) {
+      const t = String(raw === undefined || raw === null ? '' : raw).trim();
+      NOVEL_SCRATCH.crawlMax = t;
+      const v = parseInt(t, 10);
+      if (!(v > 0)) return;
+      try { localStorage.setItem(NOVEL_CRAWL_MAX_KEY, String(Math.max(1, Math.min(5000, v)))); } catch (e) { /* 持久化失败不影响本次抓取 */ }
+    }
+    /** 「抓取章数」输入框：爬取页、书籍页、简介弹层共用，绑定 NOVEL_SCRATCH.crawlMax（失焦规范化并记忆）。 */
+    function novelCrawlMaxField(extraClass) {
+      return h('label', { className: cls('dshic-nv-field', 'is-crawlnum', extraClass) },
+        h('span', { className: 'dshic-nv-label' }, '抓取章数'),
+        h('input', {
+          type: 'number', min: 1, max: 5000, step: 1,
+          className: 'dshic-nv-input is-num',
+          defaultValue: String(NOVEL_SCRATCH.crawlMax || NOVEL_CRAWL_MAX_DEFAULT),
+          placeholder: String(NOVEL_CRAWL_MAX_DEFAULT),
+          title: '本次最多抓多少章；留空按 ' + String(NOVEL_CRAWL_MAX_DEFAULT) + ' 章',
+          onInput: (e) => { novelSetCrawlMax(e.target.value); },
+          onBlur: (e) => { const v = novelCrawlMax(); e.target.value = String(v); novelSetCrawlMax(v); },
+        }));
     }
     function novelTab() { return (S.appTab || 'canvas') === 'novel'; }
     function setAppTab(id) { update((s) => { s.appTab = id; }); }
@@ -23085,14 +23122,14 @@ const DIRECTOR_KEY_HELP = [
     async function novelCrawlStart(url, title, novelId) {
       const u = String(url || NOVEL_SCRATCH.crawlUrl || '').trim();
       if (!u) { toast('请填写作品 URL'); return; }
-      const max = Math.max(1, Math.min(2000, parseInt(NOVEL_SCRATCH.crawlMax, 10) || 100));
+      const max = novelCrawlMax();
       try {
         const d = await novelApi('/api/v1/crawl/start', { method: 'POST', body: { url: u, title: title || null, max_chapters: max } });
         const nid = (d && d.novel_id) || null;
         if (!nid) { toast('后端未返回 novel_id'); return; }
         updateNovel((n) => { n.crawlJob = { novel_id: nid, title: title || u, status: 'scanning', total: 0, current: 0, novelRef: novelId || null }; });
         novelPollCrawl(nid);
-        toast('已开始抓取');
+        toast('已开始抓取：最多 ' + max + ' 章');
       } catch (e) { novelFail(e); }
     }
     function novelPollCrawl(nid) {
@@ -23164,12 +23201,12 @@ const DIRECTOR_KEY_HELP = [
     }
     async function novelCrawlContinue(nid) {
       if (!nid) { toast('没有可续抓的任务'); return; }
-      const max = Math.max(1, Math.min(2000, parseInt(NOVEL_SCRATCH.crawlMax, 10) || 100));
+      const max = novelCrawlMax();
       try {
         await novelApi('/api/v1/crawl/continue', { method: 'POST', body: { novel_id: nid, max_chapters: max }, timeoutMs: 60000 });
         updateNovel((n) => { n.crawlJob = Object.assign({}, n.crawlJob || {}, { novel_id: nid, status: 'scanning', current: 0, total: 0 }); });
         novelPollCrawl(nid);
-        toast('已继续抓取');
+        toast('已继续抓取：最多 ' + max + ' 章');
       } catch (e) { novelFail(e); }
     }
     async function novelCrawlReset(nid) {
@@ -23463,6 +23500,7 @@ const DIRECTOR_KEY_HELP = [
             : h('div', { className: 'dshic-nv-modal-desc' }, body || '该站点没有提供简介；可直接抓取入库后阅读正文。'),
           err ? h('div', { className: 'dshic-nv-hint' }, '简介读取失败：' + err) : null,
           h('div', { className: 'dshic-nv-row is-tight' },
+            novelCrawlMaxField(),
             h('button', {
               type: 'button', className: 'dshic-nv-btn is-primary',
               onClick: () => { close(); novelCrawlStart(it.url, it.title); },
@@ -23493,6 +23531,10 @@ const DIRECTOR_KEY_HELP = [
           }, pushBusy ? '写入中…' : T('novelToScriptAll')),
           h('button', { type: 'button', className: 'dshic-nv-btn is-sm', onClick: () => novelExport(id, b && b.title) }, '导出 TXT'),
           h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-danger', onClick: () => novelDeleteBook(id, b && b.title) }, '删除')),
+        h('div', { className: 'dshic-nv-bookview-bar' },
+          novelCrawlMaxField(),
+          h('button', { type: 'button', className: 'dshic-nv-btn is-sm', onClick: () => novelCrawlContinue(id) }, '继续抓取补章'),
+          h('span', { className: 'dshic-nv-hint' }, '按上面的章数往后补抓，已抓过的章节不会重复')),
         h('div', { className: 'dshic-nv-bookview-body' },
           h('div', { className: 'dshic-nv-chlist' },
             nv.chapBusy ? h('div', { className: 'dshic-nv-hint', style: { padding: '8px' } }, '加载中…') : null,
@@ -23665,6 +23707,9 @@ const DIRECTOR_KEY_HELP = [
                 (!sites.length)
                   ? h('span', { className: 'dshic-nv-hint' }, nv.sitesError ? ('站点表读取失败：' + String(nv.sitesError)) : '站点表加载中…')
                   : null),
+              h('div', { className: 'dshic-nv-row is-tight' },
+                novelCrawlMaxField(),
+                h('span', { className: 'dshic-nv-hint' }, '「抓取入库」按这个章数抓取；留空=100 章')),
               h('div', { className: 'dshic-nv-searchrow' },
                 h('input', {
                   className: 'dshic-nv-input', type: 'search', placeholder: '输入书名 / 作者 / 关键词',
@@ -23718,11 +23763,7 @@ const DIRECTOR_KEY_HELP = [
                   onInput: (e) => { NOVEL_SCRATCH.crawlUrl = e.target.value; },
                   style: { flex: '1 1 auto' },
                 }),
-                h('input', {
-                  className: 'dshic-nv-input is-num', type: 'number', min: 1, max: 2000,
-                  defaultValue: NOVEL_SCRATCH.crawlMax || 100,
-                  onInput: (e) => { NOVEL_SCRATCH.crawlMax = e.target.value; },
-                }),
+                novelCrawlMaxField(),
                 h('button', { type: 'button', className: 'dshic-nv-btn is-primary', onClick: () => novelCrawlStart() }, '抓取入库')))),
           job ? h('div', { className: 'dshic-nv-card' },
             h('div', { className: 'dshic-nv-card-head' },
@@ -23739,6 +23780,9 @@ const DIRECTOR_KEY_HELP = [
                 onClick: () => { novelStopPoll('crawl'); updateNovel((n) => { n.crawlJob = null; }); },
               }, '收起')),
             h('div', { className: 'dshic-nv-card-body' },
+              h('div', { className: 'dshic-nv-row is-tight' },
+                novelCrawlMaxField(),
+                h('span', { className: 'dshic-nv-hint' }, '「继续抓取」按这个章数向后补章（留空=100）')),
               h('div', { className: 'dshic-nv-task' },
                 h('div', { className: 'dshic-nv-task-head' },
                   h('span', {}, jobSt === 'scanning' ? '正在扫描章节列表…' : (String(cur) + ' / ' + (total ? String(total) : '?'))),
