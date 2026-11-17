@@ -1187,6 +1187,7 @@ function revealCanvasInRight() {
       'kMarquee': 'Shift + 拖动空白：框选',
       'kMiddle': '中键拖动：平移画布',
       'kWheel': '滚轮：以指针为中心缩放',
+      'kAltWheel': 'Alt + 滚轮：强制缩放（悬停在文字框 / 列表上也生效）',
       'kDblClick': '双击空白：添加节点菜单',
       'kRightClick': '右键：节点/画布菜单',
       'kUndo': 'Ctrl / ⌘ + Z：撤销',
@@ -2597,6 +2598,7 @@ function revealCanvasInRight() {
       'kMarquee': 'Shift + drag on empty canvas: marquee select',
       'kMiddle': 'Middle-button drag: pan the canvas',
       'kWheel': 'Wheel: zoom around the pointer',
+      'kAltWheel': 'Alt + Wheel: force zoom (also over text boxes and lists)',
       'kDblClick': 'Double-click empty canvas: add-node menu',
       'kRightClick': 'Right-click: node / canvas context menu',
       'kUndo': 'Ctrl / ⌘ + Z: undo',
@@ -28278,16 +28280,29 @@ const DIRECTOR_KEY_HELP = [
         };
       }, []);
       useEffect(() => {
-        const el = rootRef.current;
-        if (!el) return;
+        // 滚轮缩放挂在 document 捕获阶段：① 画布根在切项目/切 tab 后会换元素，逐个元素挂监听容易漏；
+        // ② 节点内容里的 React onWheel stopPropagation 会在冒泡路径上把缩放吞掉，捕获阶段拿不到就彻底失效。
+        // 目标必须在画布根内才接管，弹窗/侧栏滚轮不受影响。
         const fn = (e) => {
-          // 输入区/生成面板/下拉菜单保持原生行为；正文与清单只在确实可滚时放行。
-          // 这样短文本不会把滚轮抢走，画布仍可在节点空白/短内容上缩放。
-          if (wheelScrollTarget(e.target)) return;
+          const root = rootRef.current;
+          if (!root || !root.contains(e.target)) return;
+          // 强制缩放：按住 Alt/Ctrl/⌘ 时忽略「可滚内容」判定 —— 悬停在剧本正文、清单上也能缩放。
+          // （「Alt + 滚轮失效」多半就是这里：文字区/列表把滚轮留给了原生滚动，缩放事件根本没接上。）
+          const force = !!(e.altKey || e.ctrlKey || e.metaKey);
+          if (!force && wheelScrollTarget(e.target)) return;
+          // 部分鼠标/驱动（尤其 Alt + 滚轮）把滚轮映射成横向滚动：deltaY 为 0 时必须回退 deltaX，
+          // 否则 factor 恒等于 1 —— 事件被 preventDefault 吞掉却什么都没发生，看起来就是「滚轮完全失效」。
+          const dy = Number(e.deltaY) || 0;
+          let d = dy !== 0 ? dy : (Number(e.deltaX) || 0);
+          if (!d) return;
+          if (e.deltaMode === 1) d *= 16;        // 行模式
+          else if (e.deltaMode === 2) d *= 400;  // 页模式
           e.preventDefault();
-          const rect = el.getBoundingClientRect();
+          e.stopPropagation();
+          const rect = root.getBoundingClientRect();
+          if (!(rect.width > 0 && rect.height > 0)) return;
           const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
-          const factor = Math.pow(1.0015, -e.deltaY);
+          const factor = Math.pow(1.0015, -d);
           const ns = clamp(V.scale * factor, 0.15, 3);
           const wx = (sx - V.x) / V.scale, wy = (sy - V.y) / V.scale;
           // 缩放期间把 world 提成合成层（否则每个滚轮步都要重绘整张画布），停手 220ms 后释放
@@ -28302,10 +28317,11 @@ const DIRECTOR_KEY_HELP = [
               }, 220);
             }
           } catch { /* 图层提升失败不影响缩放 */ }
+          perfCounters.wheel = (perfCounters.wheel || 0) + 1; // 诊断：DevTools 里看是否真收到滚轮
           setView(sx - wx * ns, sy - wy * ns, ns, false);
         };
-        el.addEventListener('wheel', fn, { passive: false });
-        return () => el.removeEventListener('wheel', fn);
+        document.addEventListener('wheel', fn, { passive: false, capture: true });
+        return () => document.removeEventListener('wheel', fn, { capture: true });
       }, []);
       perfCounters.canvasRender++;
       const nodes = Object.values(S.graph.nodes);
@@ -28546,6 +28562,7 @@ const DIRECTOR_KEY_HELP = [
                 ['Shift + 框选', T('kMarquee')],
                 ['中键拖动', T('kMiddle')],
                 ['滚轮', T('kWheel')],
+                ['Alt + 滚轮', T('kAltWheel')],
                 ['双击空白', T('kDblClick')],
                 ['右键', T('kRightClick')],
               ]),
