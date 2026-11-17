@@ -7189,9 +7189,53 @@ export function apply(ctx) {
           }
         },
       }),
+      // 小说封面代理：起点封面是协议相对地址（//bookcover.yuewen.com/...），
+      // 番茄/纵横图床对跨站 Referer 敏感，浏览器直连经常是空白图。统一由宿主代取，
+      // 客户端只写 <img src="/infinite-canvas/api/cover?url=...">，不受 CSP 与防盗链影响。
       ctx.webServer.register({
         kind: 'exact',
-        path: `/${NAME}/api/package`,
+        path: `/${NAME}/api/cover`,
+        async handler(req, res) {
+          const fail = (code, msg) => { res.statusCode = code; res.setHeader('content-type', 'text/plain; charset=utf-8'); res.end(msg); };
+          try {
+            if (req.method !== 'GET' && req.method !== 'HEAD') { fail(405, 'method not allowed'); return; }
+            const u = new URL(req.url, 'http://localhost');
+            let target = String(u.searchParams.get('url') || '').trim();
+            if (target.startsWith('//')) target = 'https:' + target;
+            if (!/^https?:\/\//i.test(target)) { fail(400, '非法图片地址'); return; }
+            const host = new URL(target).hostname;
+            const referer = String(u.searchParams.get('referer') || ('https://' + host + '/'));
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 15000);
+            let r;
+            try {
+              r = await fetch(target, {
+                signal: ctrl.signal,
+                redirect: 'follow',
+                headers: {
+                  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',
+                  referer,
+                  accept: 'image/avif,image/webp,image/png,image/*,*/*;q=0.8',
+                },
+              });
+            } finally { clearTimeout(timer); }
+            if (!r.ok) { fail(502, '图片源返回 ' + r.status); return; }
+            const type = r.headers.get('content-type') || 'image/jpeg';
+            if (!/^image\//i.test(type)) { fail(415, '不是图片'); return; }
+            const buf = Buffer.from(await r.arrayBuffer());
+            if (buf.length > 8 * 1024 * 1024) { fail(413, '图片过大'); return; }
+            res.statusCode = 200;
+            res.setHeader('content-type', type);
+            res.setHeader('content-length', String(buf.length));
+            res.setHeader('cache-control', 'public, max-age=86400');
+            if (req.method === 'HEAD') { res.end(); return; }
+            res.end(buf);
+          } catch (e) {
+            fail(502, '封面获取失败：' + String((e && e.message) || e));
+          }
+        },
+      }),
+      ctx.webServer.register({
         async handler(req, res) {
           const json = (code, obj) => { res.statusCode = code; res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(obj)); };
           try {

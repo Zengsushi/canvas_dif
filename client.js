@@ -4125,6 +4125,27 @@ select.dshic-nv-input{flex:none;width:auto;min-width:170px;padding-right:8px;cur
 .dshic-nv-item-meta{font-size:11px;color:var(--dsw-alias-label-secondary);overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
 .dshic-nv-item-foot{display:flex;align-items:center;gap:7px;margin-top:2px;}
+.dshic-nv-item-main{display:flex;gap:10px;align-items:flex-start;}
+.dshic-nv-item-body{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1;}
+.dshic-nv-item-title{cursor:pointer;}
+.dshic-nv-item-title:hover{color:var(--dsw-alias-brand-primary);}
+.dshic-nv-cover{flex:none;width:56px;height:76px;border-radius:8px;object-fit:cover;
+  background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1);}
+.dshic-nv-cover.is-ph{display:flex;align-items:center;justify-content:center;font-size:16px;
+  font-weight:600;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-modal{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:rgba(0,0,0,.42);}
+.dshic-nv-modal-box{width:min(660px,100%);max-height:84vh;overflow:auto;padding:18px;border-radius:16px;
+  display:flex;flex-direction:column;gap:12px;background:var(--dsw-alias-bg-layer-1);
+  border:1px solid var(--dsw-alias-border-l1);box-shadow:0 18px 48px rgba(0,0,0,.28);}
+.dshic-nv-modal-head{display:flex;gap:12px;align-items:flex-start;}
+.dshic-nv-modal-cover{flex:none;width:104px;height:140px;border-radius:10px;object-fit:cover;
+  background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1);}
+.dshic-nv-modal-cover.is-ph{display:flex;align-items:center;justify-content:center;font-size:30px;
+  font-weight:600;color:var(--dsw-alias-label-secondary);}
+.dshic-nv-modal-info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;}
+.dshic-nv-modal-desc{font-size:12.5px;line-height:1.65;color:var(--dsw-alias-label-primary);
+  white-space:pre-wrap;max-height:36vh;overflow:auto;}
 .dshic-nv-task{display:flex;flex-direction:column;gap:9px;}
 .dshic-nv-task-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12.5px;font-weight:600;}
 .dshic-nv-pbar{height:6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);overflow:hidden;}
@@ -22754,6 +22775,26 @@ const DIRECTOR_KEY_HELP = [
     }
     function novelFail(e) { toast(hostRpcErrText(e) || '小说后端调用失败'); }
     function novelBooksList(d) { return Array.isArray(d) ? d : ((d && d.items) || []); }
+    // 封面地址清洗：起点给的是协议相对地址（//bookcover.yuewen.com/...），直接塞给 <img> 会 404；
+    // 图床又普遍做防盗链，所以统一走宿主的 /api/cover 代理（Referer 由宿主按图床域名补）。
+    function novelCoverUrl(u, referer) {
+      let s = String(u || '').trim();
+      if (!s) return '';
+      if (s.startsWith('//')) s = 'https:' + s;
+      if (!/^https?:\/\//i.test(s)) return '';
+      return '/' + NS + '/api/cover?url=' + encodeURIComponent(s) + (referer ? '&referer=' + encodeURIComponent(referer) : '');
+    }
+    function novelCoverImg(opts) {
+      const o = opts || {};
+      const src = novelCoverUrl(o.url, o.referer);
+      const ph = String(o.label || '书').trim().slice(0, 1) || '书';
+      if (!src) return h('div', { className: cls(o.className, 'is-ph') }, ph);
+      return h('img', {
+        className: o.className, src: src, alt: '', loading: 'lazy',
+        onError: (e) => { const el = e && e.target; if (el) el.style.visibility = 'hidden'; },
+      });
+    }
+    function novelOpenPreview(item) { if (item) updateNovel((n) => { n.preview = item; }); }
 
     async function novelRefreshStatus() {
       updateNovel((n) => { n.statusBusy = true; });
@@ -23224,6 +23265,60 @@ const DIRECTOR_KEY_HELP = [
       if (!list.length) { toast('这本书还没有章节'); return; }
       novelWriteScripts(list, false);
     }
+    function NovelPreview({ item }) {
+      const it = item || {};
+      const [detail, setDetail] = useState(null);
+      const [busy, setBusy] = useState(false);
+      const [err, setErr] = useState('');
+      const title = String(it.title || (detail && detail.title) || '（无标题）');
+      const author = String(it.author || (detail && detail.author) || '');
+      const site = String(it.source_site || it.site_domain || '');
+      const domain = String(it.site_domain || '');
+      const cover = String(it.cover_url || (detail && detail.cover_url) || '');
+      const desc = String(it.description || (detail && detail.description) || '');
+      const bookId = String(it.book_id || '');
+      useEffect(() => {
+        if (!bookId || desc) return undefined;
+        let alive = true;
+        setBusy(true);
+        novelApi('/api/v1/novels/detail', { method: 'POST', body: { book_id: bookId, site: domain || site } })
+          .then((d) => { if (alive) setDetail(d || null); })
+          .catch((e) => { if (alive) setErr(hostRpcErrText(e) || String((e && e.message) || e)); })
+          .then(() => { if (alive) setBusy(false); });
+        return () => { alive = false; };
+      }, [bookId]);
+      const close = () => updateNovel((n) => { n.preview = null; });
+      const body = desc || (detail && detail.description) || '';
+      const meta = [author, site, String(it.category || ''),
+        (it.word_count ? Number(it.word_count).toLocaleString() + ' 字' : ''), String(it.status || '')]
+        .filter(Boolean).join(' · ');
+      return h('div', { className: 'dshic-nv-modal', onPointerDown: close },
+        h('div', { className: 'dshic-nv-modal-box', onPointerDown: (e) => e.stopPropagation() },
+          h('div', { className: 'dshic-nv-modal-head' },
+            novelCoverImg({ url: cover, label: title, className: 'dshic-nv-modal-cover',
+              referer: domain ? ('https://' + domain + '/') : '' }),
+            h('div', { className: 'dshic-nv-modal-info' },
+              h('div', { className: 'dshic-nv-item-title', style: { fontSize: '15px' } }, title),
+              h('div', { className: 'dshic-nv-item-meta', style: { whiteSpace: 'normal' } }, meta || '—')),
+            h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: close }, '关闭')),
+          h('div', { className: 'dshic-nv-label' }, '简介'),
+          (busy && !body)
+            ? h('div', { className: 'dshic-nv-hint' }, '正在读取站点简介…')
+            : h('div', { className: 'dshic-nv-modal-desc' }, body || '该站点没有提供简介；可直接抓取入库后阅读正文。'),
+          err ? h('div', { className: 'dshic-nv-hint' }, '简介读取失败：' + err) : null,
+          h('div', { className: 'dshic-nv-row is-tight' },
+            h('button', {
+              type: 'button', className: 'dshic-nv-btn is-primary',
+              onClick: () => { close(); novelCrawlStart(it.url, it.title); },
+            }, '抓取入库'),
+            it.url ? h('button', {
+              type: 'button', className: 'dshic-nv-btn',
+              onClick: () => window.open(String(it.url), '_blank', 'noopener'),
+            }, '打开原站') : null,
+            h('span', { className: 'dshic-flex' }),
+            h('span', { className: 'dshic-nv-hint' }, '封面与简介来自站点公开页'))));
+    }
+
     function NovelBookView({ id }) {
       const nv = S.novel || {};
       const b = nv.openBook;
@@ -23351,15 +23446,25 @@ const DIRECTOR_KEY_HELP = [
         return String((hit && hit.name) || dom || '站点');
       };
       const pickCard = (r, k) => h('div', { key: k, className: 'dshic-nv-item' },
-        h('div', { className: 'dshic-nv-item-top' },
-          h('span', { className: 'dshic-nv-item-badge' }, String(r.source_site || r.site_domain || '站点')),
-          h('span', { className: 'dshic-nv-hint' }, String(r.author || ''))),
-        h('div', { className: 'dshic-nv-item-title', title: String(r.title || '') }, String(r.title || '（无标题）')),
-        h('div', { className: 'dshic-nv-item-meta' },
-          [String(r.category || ''), (r.word_count ? String(r.word_count) + ' 字' : ''), String(r.status || '')].filter(Boolean).join(' · ')),
+        h('div', { className: 'dshic-nv-item-main' },
+          novelCoverImg({
+            url: r.cover_url, label: r.title, className: 'dshic-nv-cover',
+            referer: r.site_domain ? ('https://' + String(r.site_domain) + '/') : '',
+          }),
+          h('div', { className: 'dshic-nv-item-body' },
+            h('div', { className: 'dshic-nv-item-top' },
+              h('span', { className: 'dshic-nv-item-badge' }, String(r.source_site || r.site_domain || '站点')),
+              h('span', { className: 'dshic-nv-hint' }, String(r.author || ''))),
+            h('div', {
+              className: 'dshic-nv-item-title', title: String(r.title || '') + '（点击查看简介）',
+              onClick: () => novelOpenPreview(r),
+            }, String(r.title || '（无标题）')),
+            h('div', { className: 'dshic-nv-item-meta' },
+              [String(r.category || ''), (r.word_count ? String(r.word_count) + ' 字' : ''), String(r.status || '')].filter(Boolean).join(' · ')))),
         h('div', { className: 'dshic-nv-item-foot' },
-          h('span', { className: 'dshic-nv-hint' }, String(r.url || '')),
+          h('span', { className: 'dshic-nv-hint' }, String(r.description || '').slice(0, 72)),
           h('span', { className: 'dshic-flex' }),
+          h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelOpenPreview(r) }, '简介'),
           h('button', {
             type: 'button', className: 'dshic-nv-btn is-sm',
             onClick: () => novelCrawlStart(r.url, r.title),
@@ -27314,6 +27419,7 @@ const DIRECTOR_KEY_HELP = [
             )
           : null,
         h(Toolbar),
+        (S.novel && S.novel.preview) ? h(NovelPreview, { item: S.novel.preview }) : null,
         novelTab() ? h(NovelWorkspace) : h('div', { className: 'dshic-main' },
           h(IconRail),          h('div', {
             ref: rootRef,
