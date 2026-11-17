@@ -23298,7 +23298,7 @@ const DIRECTOR_KEY_HELP = [
           ? h('div', { className: 'dshic-novel-jobcard' },
             h('span', {}, String(job.title || '') + ' · ' + jobSt),
             h('span', { className: 'dshic-hint' },
-              String(job.current || 0) + '/' + String(job.total || 0) + (job.message ? ' · ' + String(job.message) : '')),
+              (jobSt === 'scanning' && !job.total ? '正在扫描章节列表…' : (String(job.current || 0) + '/' + String(job.total || 0))) + (job.message ? ' · ' + String(job.message) : '')),
             h('div', { className: 'dshic-novel-progress' },
               h('div', { className: 'dshic-novel-progress-fill', style: { width: pct + '%' } })),
             errs.length
