@@ -4085,6 +4085,17 @@ body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 .dshic-novel-results{display:flex;flex-direction:column;gap:4px;}
 .dshic-novel-result{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:12px;}
 .dshic-novel-result:hover{background:var(--dsw-alias-bg-layer-2);}
+.dshic-novel-sites{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.dshic-site-chip{border:1px solid var(--dsw-alias-border-l1);background:transparent;color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:11px;cursor:pointer;}
+.dshic-site-chip.is-on{background:color-mix(in srgb,var(--dsw-alias-brand-primary) 16%,transparent);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary);}
+.dshic-novel-status{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;}
+.dshic-site-stat{padding:1px 8px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);}
+.dshic-site-stat-ok,.dshic-site-stat-success{color:#2f9e5e;}
+.dshic-site-stat-timeout,.dshic-site-stat-empty{color:#c08a2e;}
+.dshic-site-stat-error,.dshic-site-stat-unsupported{color:#c0423b;}
+.dshic-novel-browse{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.dshic-novel-select{max-width:180px;}
+.dshic-novel-errs{display:flex;flex-direction:column;gap:2px;max-height:90px;overflow:auto;}
 .dshic-novel-result-site{flex:none;min-width:64px;color:var(--dsw-alias-label-secondary);}
 .dshic-novel-result-title{font-weight:600;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dshic-novel-result-meta{color:var(--dsw-alias-label-secondary);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -22654,6 +22665,7 @@ const DIRECTOR_KEY_HELP = [
     const NOVEL_SCRATCH = {
       bookFilter: '', importTitle: '', importText: '',
       searchQ: '', crawlUrl: '', crawlMax: '100',
+      sites: [], browseSite: '', browseCategory: '',
       plot: { chapter_start: 1, chapter_end: '', target_words: 2000, max_chapters: 50, chapter_count: 10, target_words_origin: 2000 },
     };
     const novelTimers = { crawl: null, job: null };
@@ -22693,7 +22705,12 @@ const DIRECTOR_KEY_HELP = [
       const nv = S.novel || {};
       if (nv.loaded && !nv.statusBusy) { novelLoadJobs(); return; }
       updateNovel((n) => { n.loaded = true; });
-      novelRefreshStatus().then(() => { novelLoadBooks(); novelLoadSites(); novelLoadJobs(); });
+      novelRefreshStatus().then(() => {
+        novelLoadBooks();
+        novelLoadJobs();
+        novelResumeRunning();
+        novelLoadSites().then(() => { if (!(S.novel && (S.novel.categories || []).length)) novelLoadCategories(''); }).catch(() => {});
+      });
     }
 
     // ── 书架 ─────────────────────────────────────────────
@@ -22776,13 +22793,14 @@ const DIRECTOR_KEY_HELP = [
     async function novelSearch() {
       const q = String(NOVEL_SCRATCH.searchQ || '').trim();
       if (!q) { toast('请输入关键词'); return; }
+      const sites = novelSelectedSites();
       updateNovel((n) => { n.searchBusy = true; n.searchResults = []; n.searchMeta = null; });
       try {
-        const d = await novelApi('/api/v1/novels/search', { query: { q: q, limit: 20 }, timeoutMs: 240000 });
+        const d = await novelApi('/api/v1/novels/search', { query: { q: q, limit: 20, sites: sites.join(',') }, timeoutMs: 240000 });
         updateNovel((n) => { n.searchResults = (d && d.results) || []; n.searchMeta = d || null; n.searchBusy = false; });
       } catch (e) { updateNovel((n) => { n.searchBusy = false; }); novelFail(e); }
     }
-    async function novelCrawlStart(url, title) {
+    async function novelCrawlStart(url, title, novelId) {
       const u = String(url || NOVEL_SCRATCH.crawlUrl || '').trim();
       if (!u) { toast('请填写作品 URL'); return; }
       const max = Math.max(1, Math.min(2000, parseInt(NOVEL_SCRATCH.crawlMax, 10) || 100));
@@ -22790,7 +22808,7 @@ const DIRECTOR_KEY_HELP = [
         const d = await novelApi('/api/v1/crawl/start', { method: 'POST', body: { url: u, title: title || null, max_chapters: max } });
         const nid = (d && d.novel_id) || null;
         if (!nid) { toast('后端未返回 novel_id'); return; }
-        updateNovel((n) => { n.crawlJob = { novel_id: nid, title: title || u, status: 'scanning', total: 0, current: 0 }; });
+        updateNovel((n) => { n.crawlJob = { novel_id: nid, title: title || u, status: 'scanning', total: 0, current: 0, novelRef: novelId || null }; });
         novelPollCrawl(nid);
         toast('已开始抓取');
       } catch (e) { novelFail(e); }
@@ -22800,11 +22818,12 @@ const DIRECTOR_KEY_HELP = [
       const tick = async () => {
         try {
           const d = await novelApi('/api/v1/crawl/progress/' + encodeURIComponent(nid), { timeoutMs: 30000 });
-          updateNovel((n) => { n.crawlJob = Object.assign({ novel_id: nid }, d || {}); });
+          updateNovel((n) => { n.crawlJob = Object.assign({ novel_id: nid }, n.crawlJob || {}, d || {}); });
           const st = String((d && d.status) || '');
           if (['completed', 'failed', 'empty', 'cancelled', 'unknown'].indexOf(st) >= 0) {
             novelStopPoll('crawl');
             novelLoadBooks();
+            if (st === 'completed') { toast('抓取完成：' + String((d && d.current) || 0) + ' 章'); novelOpenBook(nid); }
           }
         } catch { /* 单次轮询失败保持上一帧，不打断 */ }
       };
@@ -22816,6 +22835,93 @@ const DIRECTOR_KEY_HELP = [
         await novelApi('/api/v1/crawl/stop/' + encodeURIComponent(nid), { method: 'POST' });
         toast('已请求停止');
       } catch (e) { novelFail(e); }
+    }
+    // ── 站点选择 / 分类浏览 / 续抓与重置 / 代理池（对齐 dif_base 能力） ──
+    function novelSiteDomains() {
+      const sites = (S.novel && S.novel.sites) || [];
+      return sites.filter((s) => s && s.domain && s.enabled !== false).map((s) => String(s.domain));
+    }
+    function novelSelectedSites() {
+      const all = novelSiteDomains();
+      const sel = NOVEL_SCRATCH.sites;
+      if (!Array.isArray(sel) || !sel.length) return all;
+      const keep = sel.filter((d) => all.indexOf(d) >= 0);
+      return keep.length ? keep : all;
+    }
+    function novelToggleSite(domain) {
+      const all = novelSiteDomains();
+      const cur = novelSelectedSites();
+      const d = String(domain || '');
+      const next = cur.indexOf(d) >= 0 ? cur.filter((x) => x !== d) : cur.concat([d]);
+      NOVEL_SCRATCH.sites = next.length ? next : all;
+      updateNovel((n) => { n.siteTick = (n.siteTick || 0) + 1; });
+    }
+    async function novelLoadCategories(site) {
+      const s = String(site || NOVEL_SCRATCH.browseSite || novelSiteDomains()[0] || '');
+      if (!s) { toast('没有可用站点'); return; }
+      updateNovel((n) => { n.browseBusy = true; });
+      try {
+        const d = await novelApi('/api/v1/novels/categories', { query: { site: s }, timeoutMs: 60000 });
+        const cats = (d && d.categories) || [];
+        NOVEL_SCRATCH.browseSite = s;
+        NOVEL_SCRATCH.browseCategory = (cats[0] && cats[0].id) || '';
+        updateNovel((n) => { n.categories = cats; n.browseBusy = false; });
+        if (NOVEL_SCRATCH.browseCategory) await novelBrowseList();
+      } catch (e) { updateNovel((n) => { n.browseBusy = false; }); novelFail(e); }
+    }
+    async function novelBrowseList() {
+      const site = String(NOVEL_SCRATCH.browseSite || '');
+      const cat = String(NOVEL_SCRATCH.browseCategory || '');
+      if (!site || !cat) return;
+      updateNovel((n) => { n.browseBusy = true; });
+      try {
+        const d = await novelApi('/api/v1/novels/list', { query: { site: site, category: cat, limit: 30 }, timeoutMs: 90000 });
+        const items = (d && (d.results || d.items)) || [];
+        updateNovel((n) => { n.browseItems = items; n.browseBusy = false; });
+      } catch (e) { updateNovel((n) => { n.browseBusy = false; }); novelFail(e); }
+    }
+    async function novelCrawlContinue(nid) {
+      if (!nid) { toast('没有可续抓的任务'); return; }
+      const max = Math.max(1, Math.min(2000, parseInt(NOVEL_SCRATCH.crawlMax, 10) || 100));
+      try {
+        await novelApi('/api/v1/crawl/continue', { method: 'POST', body: { novel_id: nid, max_chapters: max }, timeoutMs: 60000 });
+        updateNovel((n) => { n.crawlJob = Object.assign({}, n.crawlJob || {}, { novel_id: nid, status: 'scanning', current: 0, total: 0 }); });
+        novelPollCrawl(nid);
+        toast('已继续抓取');
+      } catch (e) { novelFail(e); }
+    }
+    async function novelCrawlReset(nid) {
+      if (!nid) return;
+      try {
+        const d = await novelApi('/api/v1/crawl/reset/' + encodeURIComponent(nid), { method: 'POST' });
+        toast((d && d.message) || '状态已重置');
+        novelLoadBooks();
+      } catch (e) { novelFail(e); }
+    }
+    async function novelProxyStats() {
+      try {
+        const d = await novelApi('/api/v1/crawl/proxy/stats', { timeoutMs: 60000 });
+        updateNovel((n) => { n.proxy = d || null; });
+      } catch (e) { novelFail(e); }
+    }
+    async function novelProxyRefresh() {
+      updateNovel((n) => { n.proxyBusy = true; });
+      try {
+        const d = await novelApi('/api/v1/crawl/proxy/refresh', { method: 'POST', timeoutMs: 180000 });
+        updateNovel((n) => { n.proxy = d || null; n.proxyBusy = false; });
+        toast('代理池已刷新');
+      } catch (e) { updateNovel((n) => { n.proxyBusy = false; }); novelFail(e); }
+    }
+    async function novelResumeRunning() {
+      try {
+        const d = await novelApi('/api/v1/crawl/status', { timeoutMs: 30000 });
+        const run = (d && d.running) || {};
+        const ids = Object.keys(run);
+        if (!ids.length) return;
+        const nid = ids[0];
+        updateNovel((n) => { if (n.crawlJob) return; n.crawlJob = Object.assign({ novel_id: nid, title: '恢复中的抓取' }, run[nid] || {}); });
+        novelPollCrawl(nid);
+      } catch { /* 状态拉不到忽略 */ }
     }
 
     // ── 改写台 ───────────────────────────────────────────
@@ -23111,19 +23217,71 @@ const DIRECTOR_KEY_HELP = [
       const jobSt = String((job && job.status) || '');
       const pct = job && job.total ? Math.min(100, Math.round(((job.current || 0) / job.total) * 100)) : 0;
       const running = ['scanning', 'crawling', 'cancelling'].indexOf(jobSt) >= 0;
+      const sel = novelSelectedSites();
+      const cats = nv.categories || [];
+      const browseItems = nv.browseItems || [];
+      const perSite = (meta && meta.per_site_status) || [];
+      const errs = (job && Array.isArray(job.errors)) ? job.errors : [];
+      const proxy = nv.proxy;
+      const statLine = (s) => {
+        const st = String(s.status || '');
+        const head = String(s.name || s.domain || '');
+        const body = (st === 'ok' || st === 'success') ? (String(s.count || 0) + ' 条') : String(s.message || st || '');
+        const secs = s.elapsed_ms ? ' · ' + String(Math.round(Number(s.elapsed_ms) / 100) / 10) + 's' : '';
+        return head + '：' + body + secs;
+      };
+      const rows = (nv.searchResults || []).concat(browseItems);
       return h('div', { className: 'dshic-novel-crawl' },
+        h('div', { className: 'dshic-novel-sites' },
+          h('span', { className: 'dshic-hint' }, '搜索站点'),
+          sites.map((s) => {
+            const dom = String(s.domain || '');
+            const on = sel.indexOf(dom) >= 0;
+            return h('button', {
+              key: 'site-' + dom, type: 'button', title: String(s.reason || ''),
+              className: 'dshic-site-chip' + (on ? ' is-on' : ''),
+              onClick: () => novelToggleSite(dom),
+            }, String(s.name || dom));
+          }),
+          h('span', { className: 'dshic-flex' }),
+          h('button', { type: 'button', className: 'dshic-mini', onClick: novelProxyStats }, '代理池')),
         h('div', { className: 'dshic-novel-crawl-form' },
           h('input', {
-            className: 'dshic-input', type: 'search', placeholder: '关键词（跨站搜索；每站 20s 超时，慢站自动跳过）',
+            className: 'dshic-input', type: 'search', placeholder: '关键词（只搜勾选站点；番茄约 30-45s，其余数秒）',
             defaultValue: NOVEL_SCRATCH.searchQ,
             onInput: (e) => { NOVEL_SCRATCH.searchQ = e.target.value; },
             onKeyDown: (e) => { if (e.key === 'Enter') novelSearch(); },
           }),
           h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.searchBusy, onClick: novelSearch },
-            nv.searchBusy ? '搜索中…' : '搜索'),
-          h('span', { className: 'dshic-flex' }),
-          h('span', { className: 'dshic-hint' },
-            sites.map((s) => String(s.name || s.domain || '') + (s.enabled === false ? '(停用)' : '')).join(' · '))),
+            nv.searchBusy ? '搜索中…' : '搜索')),
+        perSite.length
+          ? h('div', { className: 'dshic-novel-status' },
+            perSite.map((s) => h('span', {
+              key: 'st-' + String(s.domain || s.name), title: String(s.message || ''),
+              className: 'dshic-site-stat dshic-site-stat-' + String(s.status || ''),
+            }, statLine(s))))
+          : null,
+        proxy
+          ? h('div', { className: 'dshic-hint' },
+            '代理池：共 ' + String(proxy.total != null ? proxy.total : (proxy.size != null ? proxy.size : '?')) +
+            ' · 可用 ' + String(proxy.alive != null ? proxy.alive : (proxy.available != null ? proxy.available : '?')) + ' ',
+            h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.proxyBusy, onClick: novelProxyRefresh },
+              nv.proxyBusy ? '刷新中…' : '刷新代理'))
+          : null,
+        h('div', { className: 'dshic-novel-browse' },
+          h('span', { className: 'dshic-hint' }, '分类浏览'),
+          h('select', {
+            className: 'dshic-input dshic-novel-select', defaultValue: NOVEL_SCRATCH.browseSite || '',
+            onChange: (e) => { novelLoadCategories(e.target.value); },
+          }, sites.map((s) => h('option', { key: 'bs-' + String(s.domain), value: String(s.domain || '') }, String(s.name || s.domain || '')))),
+          h('select', {
+            className: 'dshic-input dshic-novel-select', value: NOVEL_SCRATCH.browseCategory || '',
+            onChange: (e) => { NOVEL_SCRATCH.browseCategory = e.target.value; novelBrowseList(); },
+          }, cats.length
+            ? cats.map((c) => h('option', { key: 'bc-' + String(c.id), value: String(c.id) }, String(c.name || c.id)))
+            : h('option', { value: '' }, '（先选站点加载分类）')),
+          h('button', { type: 'button', className: 'dshic-mini', disabled: !!nv.browseBusy, onClick: () => { novelLoadCategories(NOVEL_SCRATCH.browseSite); } },
+            nv.browseBusy ? '加载中…' : '刷新分类')),
         h('div', { className: 'dshic-novel-crawl-url' },
           h('input', {
             className: 'dshic-input', placeholder: '或直接粘贴作品 URL（如 https://book.zongheng.com/book/...）',
@@ -23143,30 +23301,33 @@ const DIRECTOR_KEY_HELP = [
               String(job.current || 0) + '/' + String(job.total || 0) + (job.message ? ' · ' + String(job.message) : '')),
             h('div', { className: 'dshic-novel-progress' },
               h('div', { className: 'dshic-novel-progress-fill', style: { width: pct + '%' } })),
-            running
-              ? h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStop(job.novel_id) }, '停止')
-              : h('button', {
+            errs.length
+              ? h('div', { className: 'dshic-novel-errs' }, errs.slice(0, 5).map((er, i) => h('div', {
+                key: 'err-' + i, className: 'dshic-hint', title: String((er && (er.error || er.message)) || ''),
+              }, '· ' + String((er && (er.title || er.chapter)) || '') + '：' + String((er && (er.error || er.message)) || '').slice(0, 120))))
+              : null,
+            h('div', { className: 'dshic-novel-crawl-form' },
+              running
+                ? h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStop(job.novel_id) }, '停止')
+                : h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlContinue(job.novel_id) }, '继续抓取'),
+              running ? null : h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlReset(job.novel_id) }, '重置状态'),
+              h('span', { className: 'dshic-flex' }),
+              h('button', {
                 type: 'button', className: 'dshic-mini',
                 onClick: () => { novelStopPoll('crawl'); updateNovel((n) => { n.crawlJob = null; }); },
-              }, '收起'))
-          : null,
-        (meta && meta.per_site_status && meta.per_site_status.length)
-          ? h('div', { className: 'dshic-hint' },
-            meta.per_site_status.map((s) => String(s.name || s.domain || '') + '：' +
-              ((s.status === 'ok' || s.status === 'success') ? (String(s.count || 0) + ' 条') : String(s.message || s.status || ''))).join(' ｜ '))
+              }, '收起')))
           : null,
         h('div', { className: 'dshic-novel-results' },
           nv.searchBusy ? h('div', { className: 'dshic-hint' }, '跨站搜索中…') : null,
-          (nv.searchResults || []).map((r) => h('div', {
+          rows.map((r) => h('div', {
             key: String(r.site_domain || '') + ':' + String(r.book_id || r.title),
             className: 'dshic-novel-result',
           },
             h('span', { className: 'dshic-novel-result-site' }, String(r.source_site || r.site_domain || '')),
             h('span', { className: 'dshic-novel-result-title', title: String(r.title || '') }, String(r.title || '')),
-            h('span', { className: 'dshic-novel-result-meta' },
-              String(r.author || '') + (r.status ? ' · ' + String(r.status) : '')),
+            h('span', { className: 'dshic-novel-result-meta' }, String(r.author || '') + (r.status ? ' · ' + String(r.status) : '')),
             h('span', { className: 'dshic-flex' }),
-            h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStart(r.url, r.title) }, '抓取')))));
+            h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelCrawlStart(r.url, r.title) }, '抓取')))))
     }
 
     function novelNumInput(label, key, def) {
