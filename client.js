@@ -4049,6 +4049,37 @@ body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 /* —— 小说工作台（卡片化重设计：顶部栏 + 分组卡片 + 统一控件） —— */
 .dshic-novel{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;
   background:var(--dsw-alias-bg-base,#f6f7f9);color:var(--dsw-alias-label-primary);}
+/* 主题兜底调色板（白底白字修复）：小说工作台在宿主主题 token 缺失、或宿主把
+   brand 当白、label 当白时会渲染出「白底白字」。这里把用到的 token 就地声明一份，
+   深浅两套都给出明确的前景/背景配对，任何主题下按钮文字都读得清。 */
+.dshic-novel, .dshic-toolbar, .dshic-main{
+  --dsw-alias-bg-base:#f5f6f8; --dsw-alias-bg-layer-1:#ffffff; --dsw-alias-bg-layer-2:#edeff3;
+  --dsw-alias-label-primary:#1b1c1f; --dsw-alias-label-secondary:#5c626c;
+  --dsw-alias-border-l1:#e4e6eb; --dsw-alias-border-l2:#d2d6dd;
+  --dsw-alias-brand-primary:#2b6dfd;
+  --dsw-alias-state-error-primary:#c0423b; --dsw-alias-state-success-primary:#12a150;
+  color-scheme:light;
+}
+body[data-ds-dark-theme] .dshic-novel,
+body[data-ds-dark-theme] .dshic-toolbar,
+body[data-ds-dark-theme] .dshic-main{
+  --dsw-alias-bg-base:#121316; --dsw-alias-bg-layer-1:#1b1c20; --dsw-alias-bg-layer-2:#26282d;
+  --dsw-alias-label-primary:#e9ebef; --dsw-alias-label-secondary:#9aa1ac;
+  --dsw-alias-border-l1:#2b2e34; --dsw-alias-border-l2:#3a3e46;
+  --dsw-alias-brand-primary:#4c8dff;
+  --dsw-alias-state-error-primary:#e06a63; --dsw-alias-state-success-primary:#33b562;
+  color-scheme:dark;
+}
+/* 主按钮：底色用品牌色、文字恒为白 —— 宿主 brand 若为白色（浅色强调），
+   这里也保证 #2b6dfd/#4c8dff 的实心底，不会再出现白底白字。 */
+.dshic-novel .dshic-nv-btn.is-primary{background:#2b6dfd;color:#fff;}
+/* 自动启动后端开关（状态条最右） */
+.dshic-novel-status-auto{display:inline-flex;align-items:center;gap:6px;font-size:12px;
+  color:var(--dsw-alias-label-secondary,#5c626c);cursor:pointer;user-select:none;white-space:nowrap;}
+.dshic-novel-status-auto input{width:14px;height:14px;margin:0;accent-color:var(--dsw-alias-brand-primary,#2b6dfd);cursor:pointer;}
+.dshic-novel .dshic-nv-btn.is-primary:hover{background:#1f5be0;color:#fff;}
+body[data-ds-dark-theme] .dshic-novel .dshic-nv-btn.is-primary{background:#3f7bf0;}
+body[data-ds-dark-theme] .dshic-novel .dshic-nv-btn.is-primary:hover{background:#5b8ffa;}
 .dshic-novel *,.dshic-novel *::before,.dshic-novel *::after{box-sizing:border-box;}
 .dshic-novel-head{flex:none;display:flex;align-items:center;gap:16px;padding:9px 18px;
   background:var(--dsw-alias-bg-layer-1,#fff);border-bottom:1px solid var(--dsw-alias-border-l1);}
@@ -22993,7 +23024,7 @@ const DIRECTOR_KEY_HELP = [
       updateNovel((n) => { n.statusBusy = true; });
       try {
         const r = await hostRpc('novelStatus', {});
-        updateNovel((n) => { n.status = r || null; n.statusBusy = false; });
+        updateNovel((n) => { n.status = r || null; n.statusBusy = false; n.autoStart = !!(r && r.autoStart); });
         return r;
       } catch (e) {
         updateNovel((n) => { n.status = { ok: false, error: String((e && e.message) || e) }; n.statusBusy = false; });
@@ -23003,9 +23034,32 @@ const DIRECTOR_KEY_HELP = [
     async function novelLaunchBackend() {
       try {
         const r = await hostRpc('novelLaunch', {});
+        // 宿主会先探测：后端已经在跑就直接复用（不重复起进程、不撞 8000 端口）
+        if (r && r.already) {
+          toast('小说后端已在运行，直接复用');
+          novelRefreshStatus().then(() => { novelLoadBooks(); novelLoadSites(); });
+          return;
+        }
         toast('已启动小说后端（pid ' + ((r && r.pid) || '?') + '），几秒后自动复探');
         setTimeout(() => { novelRefreshStatus(); novelLoadBooks(); }, 4500);
       } catch (e) { novelFail(e); }
+    }
+    /** 自动启动后端开关：写插件配置 novel.autoStart，宿主启动时据此决定是否拉起。 */
+    async function novelSetAutoStart(v) {
+      const want = !!v;
+      updateNovel((n) => {
+        n.autoStart = want;
+        if (n.status) n.status = Object.assign({}, n.status, { autoStart: want });
+      });
+      try {
+        const r = await hostRpc('novelConfigSet', { autoStart: want });
+        const real = !(r && r.autoStart === false);
+        updateNovel((n) => { n.autoStart = real; if (n.status) n.status = Object.assign({}, n.status, { autoStart: real }); });
+        toast(real ? '已开启：DSH 启动时自动拉起小说后端' : '已关闭：DSH 启动时不再自动拉起后端');
+      } catch (e) {
+        updateNovel((n) => { n.autoStart = !want; if (n.status) n.status = Object.assign({}, n.status, { autoStart: !want }); });
+        novelFail(e);
+      }
     }
     function novelBootstrap() {
       const nv = S.novel || {};
@@ -23050,6 +23104,18 @@ const DIRECTOR_KEY_HELP = [
           n.chapBusy = false;
         });
       } catch (e) { updateNovel((n) => { n.chapBusy = false; }); novelFail(e); }
+    }
+    /** 只刷新章节目录：抓取过程中「边抓边入库」，每几帧刷新一次就能看到新章节。 */
+    async function novelRefreshChapters(id) {
+      if (!id) return;
+      try {
+        const c = await novelApi('/api/v1/novels/' + encodeURIComponent(id) + '/chapters', { query: { limit: 500, offset: 0 } });
+        updateNovel((n) => {
+          if (n.openId !== id) return;
+          n.chapters = (c && c.items) || [];
+          n.chapTotal = (c && c.total) || 0;
+        });
+      } catch { /* 刷新失败保留旧列表，不打扰用户 */ }
     }
     async function novelReadChapter(novelId, ch) {
       updateNovel((n) => { n.reading = { id: ch.id, idx: ch.idx, title: ch.title, content: '', busy: true }; });
@@ -23119,9 +23185,29 @@ const DIRECTOR_KEY_HELP = [
         updateNovel((n) => { n.searchResults = (d && d.results) || []; n.searchMeta = d || null; n.searchBusy = false; });
       } catch (e) { updateNovel((n) => { n.searchBusy = false; }); novelFail(e); }
     }
+    /** 同名书已经在抓的（status=crawling/scanning）直接复用，避免重复点击各建一本空书。 */
+    function novelRunningByTitle(title) {
+      const t = String(title || '').trim();
+      if (!t) return null;
+      const books = (S.novel && S.novel.books) || [];
+      for (const b of books) {
+        if (!b || !b.id) continue;
+        if (String(b.title || '').trim() !== t) continue;
+        const st = String(b.status || '');
+        if (st === 'crawling' || st === 'scanning') return b;
+      }
+      return null;
+    }
     async function novelCrawlStart(url, title, novelId) {
       const u = String(url || NOVEL_SCRATCH.crawlUrl || '').trim();
       if (!u) { toast('请填写作品 URL'); return; }
+      const dup = novelRunningByTitle(title);
+      if (dup) {
+        updateNovel((n) => { n.crawlJob = { novel_id: dup.id, title: dup.title, status: 'crawling', novelRef: novelId || null }; });
+        novelPollCrawl(dup.id);
+        toast('《' + String(dup.title || '') + '》正在抓取，已切到该任务');
+        return;
+      }
       const max = novelCrawlMax();
       try {
         const d = await novelApi('/api/v1/crawl/start', { method: 'POST', body: { url: u, title: title || null, max_chapters: max } });
@@ -23129,20 +23215,34 @@ const DIRECTOR_KEY_HELP = [
         if (!nid) { toast('后端未返回 novel_id'); return; }
         updateNovel((n) => { n.crawlJob = { novel_id: nid, title: title || u, status: 'scanning', total: 0, current: 0, novelRef: novelId || null }; });
         novelPollCrawl(nid);
-        toast('已开始抓取：最多 ' + max + ' 章');
+        novelLoadBooks();
+        toast('已开始抓取：最多 ' + max + ' 章（章节边抓边入库）');
       } catch (e) { novelFail(e); }
     }
     function novelPollCrawl(nid) {
       novelStopPoll('crawl');
+      let frame = 0;
       const tick = async () => {
+        frame += 1;
         try {
           const d = await novelApi('/api/v1/crawl/progress/' + encodeURIComponent(nid), { timeoutMs: 30000 });
           updateNovel((n) => { n.crawlJob = Object.assign({ novel_id: nid }, n.crawlJob || {}, d || {}); });
           const st = String((d && d.status) || '');
-          if (['completed', 'failed', 'empty', 'cancelled', 'unknown'].indexOf(st) >= 0) {
+          const live = st === 'crawling' || st === 'scanning' || st === 'cancelling';
+          // 后端每章一次 commit（DB 已是事实源），前端每 3 帧刷新当前书的章节目录、
+          // 每 6 帧刷新书目：用户在抓取过程中就能看到「已入库 N 章」，不必等 completed。
+          if (live && frame % 3 === 0) {
+            if ((S.novel && S.novel.openId) === nid) novelRefreshChapters(nid);
+            if (frame % 6 === 0) novelLoadBooks();
+          }
+          if (['completed', 'failed', 'empty', 'cancelled', 'unknown', 'interrupted'].indexOf(st) >= 0) {
             novelStopPoll('crawl');
             novelLoadBooks();
-            if (st === 'completed') { toast('抓取完成：' + String((d && d.current) || 0) + ' 章'); novelOpenBook(nid); }
+            if ((S.novel && S.novel.openId) === nid) novelRefreshChapters(nid);
+            const n = String((d && d.current) || 0);
+            if (st === 'completed') { toast('抓取完成：' + n + ' 章已入库'); novelOpenBook(nid); }
+            else if (st === 'cancelled') { toast('已停止：已入库 ' + n + ' 章，可点「继续抓取」补章'); novelLoadBooks(); }
+            else if (st === 'failed') { toast('抓取失败：' + n + ' 章已入库，详情见错误列表'); }
           }
         } catch { /* 单次轮询失败保持上一帧，不打断 */ }
       };
@@ -23150,10 +23250,17 @@ const DIRECTOR_KEY_HELP = [
       novelTimers.crawl = setInterval(tick, 2000);
     }
     async function novelCrawlStop(nid) {
+      if (!nid) { toast('没有可停止的任务'); return; }
+      updateNovel((n) => { if (n.crawlJob) n.crawlJob = Object.assign({}, n.crawlJob, { busy: true }); });
       try {
         await novelApi('/api/v1/crawl/stop/' + encodeURIComponent(nid), { method: 'POST' });
-        toast('已请求停止');
-      } catch (e) { novelFail(e); }
+        updateNovel((n) => { if (n.crawlJob) n.crawlJob = Object.assign({}, n.crawlJob, { busy: false, status: 'cancelling' }); });
+        toast('已请求停止：在途章节会取消，已入库章节全部保留');
+        setTimeout(() => novelPollCrawl(nid), 700);
+      } catch (e) {
+        updateNovel((n) => { if (n.crawlJob) n.crawlJob = Object.assign({}, n.crawlJob, { busy: false }); });
+        novelFail(e);
+      }
     }
     // ── 站点选择 / 分类浏览 / 续抓与重置 / 代理池（对齐 dif_base 能力） ──
     function novelSiteDomains() {
@@ -23357,7 +23464,17 @@ const DIRECTOR_KEY_HELP = [
         h('span', { className: cls('dshic-novel-dot', ok && 'is-ok') }),
         h('span', { className: 'dshic-novel-status-text', title: txt }, txt),
         ok ? null : h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: novelLaunchBackend }, '启动后端'),
-        h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => { novelRefreshStatus().then(() => { novelLoadBooks(); novelLoadSites(); }); } }, '重新探测'));
+        h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => { novelRefreshStatus().then(() => { novelLoadBooks(); novelLoadSites(); }); } }, '重新探测'),
+        h('label', {
+          className: 'dshic-novel-status-auto',
+          title: '开启后：DSH 启动时会先探测 8000 端口，未运行才自动拉起小说后端（已运行则跳过）',
+        },
+          h('input', {
+            type: 'checkbox',
+            checked: !!nv.autoStart,
+            onChange: (e) => novelSetAutoStart(e.target.checked),
+          }),
+          h('span', {}, '自动启动后端')));
     }
 
     function NovelImportBox() {
@@ -23771,8 +23888,11 @@ const DIRECTOR_KEY_HELP = [
               h('span', { className: 'dshic-nv-tag' }, jobSt || 'unknown'),
               h('span', { className: 'dshic-nv-card-hint' }, String(job.title || job.novel_id || '').slice(0, 40)),
               h('span', { className: 'dshic-flex' }),
-              running ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-danger', onClick: () => novelCrawlStop(job.novel_id) }, '停止')
-                : null,
+              running ? h('button', {
+                type: 'button', className: 'dshic-nv-btn is-sm is-danger',
+                disabled: !!job.busy || jobSt === 'cancelling',
+                onClick: () => novelCrawlStop(job.novel_id),
+              }, (job.busy || jobSt === 'cancelling') ? '停止中…' : '停止') : null,
               (!running && job.novel_id) ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm', onClick: () => novelCrawlContinue(job.novel_id) }, '继续抓取') : null,
               (!running && job.novel_id) ? h('button', { type: 'button', className: 'dshic-nv-btn is-sm is-ghost', onClick: () => novelCrawlReset(job.novel_id) }, '重置状态') : null,
               h('button', {
@@ -23787,6 +23907,7 @@ const DIRECTOR_KEY_HELP = [
                 h('div', { className: 'dshic-nv-task-head' },
                   h('span', {}, jobSt === 'scanning' ? '正在扫描章节列表…' : (String(cur) + ' / ' + (total ? String(total) : '?'))),
                   h('span', { className: 'dshic-flex' }),
+                  cur > 0 ? h('span', { className: 'dshic-nv-tag' }, '已入库 ' + String(cur) + ' 章') : null,
                   h('span', { className: 'dshic-nv-hint' }, pct + '%')),
                 h('div', { className: 'dshic-nv-pbar' }, h('div', { className: 'dshic-nv-pbar-fill', style: { width: pct + '%' } }))),
               (job.message ? h('div', { className: 'dshic-nv-hint' }, String(job.message)) : null),

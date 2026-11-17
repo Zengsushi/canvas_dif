@@ -1921,6 +1921,8 @@ function novelCfg() {
     base: String(n.base || NOVEL_BASE_DEFAULT).replace(/\/+$/, ''),
     apiKey: String(n.apiKey || ''),
     dir: String(n.dir || NOVEL_DIR_DEFAULT),
+    // 是否在宿主启动时自动拉起后端（默认开）；页面上的开关写的就是这一位
+    autoStart: n.autoStart !== false,
   };
 }
 function novelSaveCfg(patch) {
@@ -1929,10 +1931,11 @@ function novelSaveCfg(patch) {
   for (const k of ['base', 'apiKey', 'dir']) {
     if (patch && patch[k] !== undefined) next[k] = String(patch[k] ?? '');
   }
+  if (patch && patch.autoStart !== undefined) next.autoStart = !!patch.autoStart;
   cfg.novel = next;
   writeIcConfig(cfg);
   const c = novelCfg();
-  return { base: c.base, dir: c.dir, hasKey: !!c.apiKey };
+  return { base: c.base, dir: c.dir, hasKey: !!c.apiKey, autoStart: c.autoStart };
 }
 /** 转发一个小说 API 请求，返回后端信封里的 data（失败抛错，前端统一 toast）。 */
 async function novelForward(args) {
@@ -1976,6 +1979,13 @@ async function novelForward(args) {
     throw new Error('小说后端 ' + upstream.status + '：' + msg);
   }
   if (!json) return { ok: true, status: upstream.status, data: text };
+  // 后端的业务错误是「HTTP 200 + 信封 code !== 0」（例如 400 该小说正在爬取中 /
+  // 404 没有正在运行的爬取任务）。以前直接把 data 透传，前端拿到 null 却以为成功：
+  // 点「停止」有 toast、实际没停；点「继续」也一样。必须在这里显式抛错。
+  if (typeof json.code === 'number' && json.code !== 0) {
+    const detail = json.message || json.detail || ('code=' + json.code);
+    throw new Error('小说后端：' + String(detail));
+  }
   return { ok: true, status: upstream.status, data: json.data !== undefined ? json.data : json };
 }
 /** 后端健康探测（2.5s 超时）：面板据此显示「未启动」并给一键启动。 */
@@ -1985,14 +1995,18 @@ async function novelStatusProbe() {
   try {
     const r = await fetch(cfg.base + '/api/v1/health', { signal: AbortSignal.timeout(2500) });
     const j = await r.json().catch(() => null);
-    return { ok: r.ok, base: cfg.base, dir: cfg.dir, hasKey: !!cfg.apiKey, ms: Date.now() - t0, health: j || null };
+    return { ok: r.ok, base: cfg.base, dir: cfg.dir, hasKey: !!cfg.apiKey, autoStart: cfg.autoStart, ms: Date.now() - t0, health: j || null };
   } catch (e) {
-    return { ok: false, base: cfg.base, dir: cfg.dir, hasKey: !!cfg.apiKey, ms: Date.now() - t0, error: String((e && e.message) || e) };
+    return { ok: false, base: cfg.base, dir: cfg.dir, hasKey: !!cfg.apiKey, autoStart: cfg.autoStart, ms: Date.now() - t0, error: String((e && e.message) || e) };
   }
 }
-/** 一键启动小说后端：detached 起 venv 里的 python main.py（stdio 忽略 + unref，不随宿主退出被杀）。 */
-function novelLaunchBackend() {
+/** 一键启动小说后端：detached 起 venv 里的 python main.py（stdio 忽略 + unref，不随宿主退出被杀）。
+ *  **启动前先探测**：后端已经在跑就直接返回 { already: true }，绝不再起第二个进程 ——
+ *  第二个进程会撞端口（8000 被占）并把日志写乱，用户看到的是「启动成功但页面没变」。 */
+async function novelLaunchBackend() {
   const cfg = novelCfg();
+  const probe = await novelStatusProbe();
+  if (probe.ok) return { ok: true, already: true, pid: null, base: cfg.base, dir: cfg.dir, health: probe.health || null };
   const mainPy = path.join(cfg.dir, 'main.py');
   if (!existsSync(mainPy)) throw new Error('找不到小说后端入口：' + mainPy + '（检查「后端目录」设置）');
   const venvPy = path.join(cfg.dir, 'venv', 'Scripts', 'python.exe');
@@ -4017,6 +4031,20 @@ function collectHarnessProviders() {
 export function apply(ctx) {
   // 启动自检（排障用，可整行删除）：确认宿主加载的是「Harness 供应商桥」补丁版本
   try { writeFileSync(path.join(os.tmpdir(), 'dsh-ic-host-boot.log'), new Date().toISOString() + ' pid=' + process.pid + ' VERSION=' + VERSION + os.EOL, { flag: 'a' }); } catch { /* 忽略 */ }
+  // 小说后端自动启动（开关在「小说」页右上角，写进插件配置 novel.autoStart）：
+  // 宿主起来 3 秒后探测一次，**只有确实没在跑**才拉起 —— 已经在跑就直接复用，
+  // 绝不起第二个进程（第二个会撞 8000 端口，页面反而显示「未连接」）。
+  try {
+    const novelBootTimer = setTimeout(async () => {
+      try {
+        const c = novelCfg();
+        if (!c.autoStart) return;
+        const st = await novelStatusProbe();
+        if (!st.ok) await novelLaunchBackend();
+      } catch { /* 自动启动失败不打断插件的其它功能 */ }
+    }, 3000);
+    if (novelBootTimer && typeof novelBootTimer.unref === 'function') novelBootTimer.unref();
+  } catch { /* ignore */ }
   ctx.effect(() => {
     const llm = () => ctx.get('llm');
 
@@ -5106,7 +5134,7 @@ export function apply(ctx) {
       async harnessProviders() { return collectHarnessProviders(); },
       /** 小说后端状态：ok=false 时前端给「一键启动」按钮。 */
       async novelStatus() { return novelStatusProbe(); },
-      async novelConfigGet() { const c = novelCfg(); return { base: c.base, dir: c.dir, hasKey: !!c.apiKey }; },
+      async novelConfigGet() { const c = novelCfg(); return { base: c.base, dir: c.dir, hasKey: !!c.apiKey, autoStart: c.autoStart }; },
       async novelConfigSet(args) { return novelSaveCfg(args || {}); },
       /** 小说能力统一出口：{ path, method, query, body, timeoutMs } → 后端信封里的 data。 */
       async novelApi(args) { return novelForward(args || {}); },
