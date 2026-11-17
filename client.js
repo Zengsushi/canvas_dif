@@ -22802,9 +22802,17 @@ const DIRECTOR_KEY_HELP = [
     // 【场N】分场剧本；raw=true 时把原文直接写进成稿区（不调模型，适合已经分好场的文本）。
     const NOVEL_SCRIPT_MAX = 12000;
     function novelCanvasReady() { return !!(S.activeId && S.graph && S.graph.nodes); }
+    /** 章节抬头：章标题里已经带「第N章」时不重复拼接（采集站常写作「[正文] 第1章 …」）。 */
+    function novelChapterHead(book, ch) {
+      const idx = (ch && ch.idx) || '?';
+      let t = String((ch && ch.title) || '').trim();
+      const plain = t.replace(/^\[[^\]]*\]\s*/, '');
+      if (plain.indexOf('第' + idx + '章') === 0 || plain.indexOf('第' + idx + '节') === 0) t = '';
+      return '【小说改编】《' + ((book && book.title) || '小说') + '》第' + idx + '章' + (t ? ' ' + t : '');
+    }
     function novelScriptIdea(book, ch, text) {
       return [
-        '【小说改编】《' + ((book && book.title) || '小说') + '》第' + ((ch && ch.idx) || '?') + '章 ' + ((ch && ch.title) || ''),
+        novelChapterHead(book, ch),
         '把下面这一章原文改编成可拍摄的短剧剧本：保留主线情节、人物关系与关键台词，每个场景以【场N】单独一行开头，人物/场景/道具名称沿用原文。',
         '',
         '原文：',
