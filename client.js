@@ -1545,6 +1545,24 @@ function revealCanvasInRight() {
       'autobindBtn': '自动绑定资产',
       'autobindHint': '把资产库已有的角色/场景/道具设定图绑定到设定集条目（assetIds）——铺开时才会继承这些参考图',
       'autobindDone': '自动绑定完成：{n} 个条目已绑定（{c} 条资产可映射）',
+      'bindMenu': '设定为角色 / 道具 / 场景图…',
+      'bindPickTitle': '把这张图设为{k}图',
+      'bindModeSet': '设为',
+      'bindModeReplace': '替换',
+      'bindModeHint': '设为=保留原有图；替换=只留这张',
+      'bindHasImage': '已有 {n} 张',
+      'bindNoImage': '还没有图',
+      'bindEmptyList': '设定集里还没有{k}，在下面输入名称新建',
+      'bindNewHint': '新建{k}名称',
+      'bindNewBtn': '新建并设为{k}图',
+      'bindSet': '已设为{k}图：{n}',
+      'bindReplaced': '已替换{k}图：{n}',
+      'bindNeedAsset': '这个节点还没有图片：先生成或挂载图片再设定',
+      'bindNeedProject': '请先打开一个画布项目',
+      'copyPrompt': '复制提示词',
+      'copyPromptDone': '提示词已复制',
+      'copyPromptEmpty': '没有可复制的提示词',
+      'sheetWord': '设定图',
       'importPackageFailed': '导入失败：{e}',
       'dataRootImported': '导入完成：合并 {n} 个项目、补入 {a} 条资产元数据',
       'dataRootImportHint': '换电脑迁移：把整个数据目录拷到新机器 → 设置为数据根目录 → 点"从数据目录导入"即可恢复项目/节点/设定集/资产',
@@ -2904,6 +2922,24 @@ function revealCanvasInRight() {
       'autobindBtn': 'Auto-bind assets',
       'autobindHint': 'Bind existing character/scene/prop sheets from the asset library to bible entries (assetIds) so spreads inherit them',
       'autobindDone': 'Auto-bind done: {n} entries bound ({c} assets matched)',
+      'bindMenu': 'Set as character / prop / scene image…',
+      'bindPickTitle': 'Set this image as {k}',
+      'bindModeSet': 'Set',
+      'bindModeReplace': 'Replace',
+      'bindModeHint': 'Set keeps existing images; Replace keeps only this one',
+      'bindHasImage': '{n} image(s)',
+      'bindNoImage': 'No image yet',
+      'bindEmptyList': 'No {k} in the bible yet — type a name below to create one',
+      'bindNewHint': 'New {k} name',
+      'bindNewBtn': 'Create & set as {k}',
+      'bindSet': 'Set as {k}: {n}',
+      'bindReplaced': 'Replaced {k}: {n}',
+      'bindNeedAsset': 'This node has no image yet — generate or attach one first',
+      'bindNeedProject': 'Open a canvas project first',
+      'copyPrompt': 'Copy prompt',
+      'copyPromptDone': 'Prompt copied',
+      'copyPromptEmpty': 'Nothing to copy',
+      'sheetWord': 'sheet',
       'importPackageFailed': 'Import failed: {e}',
       'dataRootImported': 'Imported: {n} projects merged, {a} asset records added',
       'dataRootImportHint': 'Migration: copy the whole data folder to the new machine, set it as data root, then click "Import from data root" to restore projects/nodes/bible/assets',
@@ -3976,6 +4012,17 @@ body[data-ds-dark-theme] .dshic-batch{border-color:var(--dsw-alias-border-l2);}
 body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 /* 右键菜单分组分隔线：把「选区批量执行」与「新建节点」两个功能区隔开 */
 .dshic-menu-sep{height:1px;margin:4px 6px;background:var(--dsw-alias-border-l1);}
+.dshic-bindpicker{width:430px;max-width:calc(100vw - 48px);}
+.dshic-bind-tabs{display:flex;gap:6px;align-items:center;margin:2px 0 8px;flex-wrap:wrap;}
+.dshic-bind-tabs .dshic-mini.is-active{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary);}
+.dshic-bind-list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.dshic-bind-row{display:flex;align-items:center;gap:6px;}
+.dshic-bind-pick{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;
+  border-radius:6px;border:1px solid var(--dsw-alias-border-l1);background:transparent;color:inherit;cursor:pointer;text-align:left;font:inherit;}
+.dshic-bind-pick:hover{border-color:var(--dsw-alias-brand-primary);}
+.dshic-bind-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dshic-bind-new{display:flex;gap:6px;align-items:center;}
+.dshic-bind-new .dshic-input{flex:1;}
 /* —— 顶部一级 tab（画布 / 小说）：分段控件，与工具栏其它图标按钮同一视觉高度 —— */
 .dshic-apptabs{display:flex;align-items:center;gap:2px;padding:2px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);flex:none;}
 .dshic-apptab{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 14px;border:none;border-radius:8px;
@@ -5492,6 +5539,109 @@ body[data-ds-dark-theme] .dshic-pick-item.is-on{background:color-mix(in srgb,var
       } catch { /* 忽略 */ }
     }
     const biblePushTimers = new Map();
+    // ============================================================
+    // 把某张图「设为 / 替换」角色·道具·场景图：
+    //   ① 资产归类：category=character|scene|prop，entity=实体名，nodeLabel='角色-名 设定图'
+    //   ② 设定集条目 assetIds 绑定（铺开继承项目资产的唯一依据：生成参考图只认连线，铺开按 assetIds 连线）
+    // ============================================================
+    const BIBLE_KIND_KEY = { character: 'characters', scene: 'scenes', prop: 'props' };
+    const BIBLE_KIND_LABEL = () => ({ character: T('catCharacter'), scene: T('catScene'), prop: T('catProp') });
+    function bibleEntryList(pid, kind) {
+      const bib = loadBible(pid);
+      const list = bib[BIBLE_KIND_KEY[kind] || 'characters'];
+      return Array.isArray(list) ? list : [];
+    }
+    /** 设定集条目第一个已绑定资产 id（图片）；用于「复制提示词」 */
+    function entityBoundAssetId(entry) {
+      const ids = (entry && Array.isArray(entry.assetIds)) ? entry.assetIds : [];
+      return ids.filter(Boolean)[0] || null;
+    }
+    /** 资产登记为某实体的设定图（category/entity/entities/nodeLabel），本地立即生效 + 服务端写回。 */
+    async function markAssetAsEntity(assetId, kind, name) {
+      const nm = String(name || '').trim();
+      if (!assetId || !nm) return null;
+      const label = (BIBLE_KIND_LABEL()[kind] || T('catCharacter')) + '-' + nm + ' ' + T('sheetWord');
+      const patch = { category: kind, entity: nm, entities: [nm], nodeLabel: label };
+      const rec = assetMem.get(assetId) || await idbGet(assetId).catch(() => null);
+      if (rec) { Object.assign(rec, patch); assetMem.set(rec.id || assetId, rec); }
+      if (S.store) { try { await hostRpc('assetUpdate', { id: assetId, patch }); } catch { /* 归类失败不阻断绑定 */ } }
+      update((s) => { s.assetsTick++; });
+      return rec;
+    }
+    /** 绑定资产到设定集条目：mode='set' 保留已有图（新图置顶），mode='replace' 只留这张；条目不存在按名称新建。 */
+    function bindAssetToBibleEntry(pid, kind, name, assetId, mode) {
+      const key = BIBLE_KIND_KEY[kind] || 'characters';
+      const nm = String(name || '').trim();
+      if (!pid || !nm || !assetId) return null;
+      const bib = loadBible(pid);
+      const list = Array.isArray(bib[key]) ? bib[key].slice() : [];
+      const q = nm.toLowerCase();
+      const i = list.findIndex((e) => String((e && e.name) || '').trim().toLowerCase() === q);
+      let entry;
+      if (i < 0) {
+        entry = { name: nm, desc: '', assetIds: [], voiceAssetId: null, createdAt: Date.now(), updatedAt: Date.now() };
+        list.push(entry);
+      } else {
+        entry = Object.assign({}, list[i], { assetIds: Array.isArray(list[i].assetIds) ? list[i].assetIds.slice() : [] });
+        list[i] = entry;
+      }
+      const rest = entry.assetIds.filter((x) => x && x !== assetId);
+      entry.assetIds = (mode === 'replace' ? [assetId] : [assetId].concat(rest)).slice(0, 16);
+      entry.updatedAt = Date.now();
+      bib[key] = list;
+      saveBibleLocal(pid, bib);
+      pushBible(pid, bib);
+      update((s) => { s.bibleTick++; s.assetsTick++; });
+      return { entry, created: i < 0 };
+    }
+    /** 打开「设定为角色 / 道具 / 场景图」选择器（S.entityPicker 驱动 EntityPicker 浮层）。 */
+    function openEntityPicker(opts) {
+      const o = opts || {};
+      if (!S.activeId) { toast(T('bindNeedProject')); return; }
+      if (!o.assetId) { toast(T('bindNeedAsset')); return; }
+      // 从节点名猜类型：'场景-…' / '道具-…' / 其余按角色，省一次点击
+      let kind = o.kind || null;
+      if (!kind) {
+        const nd = (o.nodeId && S.graph && S.graph.nodes) ? S.graph.nodes[o.nodeId] : null;
+        const raw = String((nd && nd.data && nd.data.label) || '');
+        kind = /场景/.test(raw) ? 'scene' : /道具/.test(raw) ? 'prop' : 'character';
+      }
+      update((s) => {
+        s.entityPicker = { assetId: o.assetId, nodeId: o.nodeId || null, kind, mode: o.mode || 'set' };
+      });
+    }
+    function closeEntityPicker() { update((s) => { s.entityPicker = null; }); }
+    /** 执行一次设定/替换：先归类资产，再绑进设定集条目，最后提示。 */
+    async function applyEntityPick(kind, name, mode, assetId) {
+      const nm = String(name || '').trim();
+      if (!nm || !assetId) return;
+      closeEntityPicker();
+      const kindLabel = BIBLE_KIND_LABEL()[kind] || T('catCharacter');
+      try {
+        await markAssetAsEntity(assetId, kind, nm);
+        bindAssetToBibleEntry(S.activeId, kind, nm, assetId, mode === 'replace' ? 'replace' : 'set');
+        toast(T(mode === 'replace' ? 'bindReplaced' : 'bindSet').replace('{k}', kindLabel).replace('{n}', nm));
+      } catch (e) { toast(hostRpcErrText ? hostRpcErrText(e) : String((e && e.message) || e)); }
+    }
+    /** 复制节点提示词（图片=画面提示词；视频=动态提示词）。 */
+    function copyNodePrompt(n) {
+      const t = String((n && n.data && (n.data.prompt || n.data.effectivePrompt)) || '').trim();
+      if (!t) { toast(T('copyPromptEmpty')); return; }
+      copyText(t, T('copyPromptDone'));
+    }
+    /** 复制设定集条目已绑定资产的提示词；没有绑定资产则回退条目描述。 */
+    async function copyEntityPrompt(entry) {
+      const id = entityBoundAssetId(entry);
+      let t = '';
+      if (id) {
+        const rec = assetMem.get(id) || await idbGet(id).catch(() => null);
+        t = String((rec && rec.prompt) || '').trim();
+      }
+      if (!t) t = String((entry && entry.desc) || '').trim();
+      if (!t) { toast(T('copyPromptEmpty')); return; }
+      copyText(t, T('copyPromptDone'));
+    }
+
     /** 设定集保存：本地立即写，推送防抖（输入过程中不逐字打网络）。 */
     function saveBible(pid, b) {
       if (!pid) return;
@@ -11828,6 +11978,7 @@ function queueThumb(assetId) {
       canvasSearch: '',
       canvasCollapsed: false,
       menu: null,          // {x, y, kind:'add'}
+      entityPicker: null,  // 设定为角色/道具/场景图选择器：{ assetId, nodeId, kind, mode } | null（纯 UI）
       batch: null,         // 批量执行台：{ items, running, stopped, concurrency, price, videoSecs, source } | null（纯 UI）
       // 创作台（自动创作 + 批量执行统一面板）：consoleOpen 开关；consoleTab 'auto' | 'batch'（纯 UI）
       consoleOpen: false,
@@ -14227,6 +14378,7 @@ function queueThumb(assetId) {
       chat: 'M4 5h16v11H9l-5 4V5z',
       users: 'M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1M9 11a4 4 0 100-8 4 4 0 000 8zM22 19v-1a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8',
       tag: 'M4 4h7l9 9-7 7-9-9V4zM8 8h.01',
+      copy: 'M9 9h10v10H9zM5 15V5h10',
     };
     function Ic(name, size) { return h(Icon, { d: ICONS[name], size: size || 14 }); }
 
@@ -17867,6 +18019,12 @@ function queueThumb(assetId) {
           : 0;
         const items = [
           { label: T('copyNode'), icon: 'plus', fn: () => { update((s) => { s.sel = new Set([n.id]); }); duplicateSelection(); } },
+          ...(n.type === 'image' && n.data && n.data.assetId
+            ? [{ label: T('bindMenu'), icon: 'tag', fn: () => openEntityPicker({ assetId: n.data.assetId, nodeId: n.id }) }]
+            : []),
+          ...(n.type === 'image' || n.type === 'video'
+            ? [{ label: T('copyPrompt'), icon: 'copy', fn: () => copyNodePrompt(n) }]
+            : []),
           ...(canRun ? [{ label: T('runNode'), icon: 'play', fn: () => { runGenNode(n); } }] : []),
           ...(batchTargets.length && (n.type === 'group' || (S.sel.has(n.id) && S.sel.size >= 2))
             ? [{
@@ -24200,6 +24358,7 @@ const DIRECTOR_KEY_HELP = [
                 shown.map((a) => h(AssetCard, {
                   key: a.id, a, onAdd: addNodeFor, onDel: (x) => setDelTarget(x), onCat: changeCategory,
                   onRename: rename, onMove: moveAsset, onMeta: updateAssetMeta,
+                  onBind: (x) => openEntityPicker({ assetId: x.id }),
                   projectName: projectName(a.projectId),
                   checked: selIds.has(a.id), onToggleSel: toggleSel,
                 })),
@@ -24222,6 +24381,67 @@ const DIRECTOR_KEY_HELP = [
           )) : null,
       ];
     }
+    /** 「设定为角色 / 道具 / 场景图」选择器：把当前图片资产挂进设定集条目（铺开继承的唯一依据）。 */
+    function EntityPicker() {
+      const pk = S.entityPicker;
+      if (!pk) return null;
+      const [nameDraft, setNameDraft] = useState('');
+      const kind = pk.kind || 'character';
+      const list = bibleEntryList(S.activeId, kind);
+      const label = BIBLE_KIND_LABEL()[kind] || T('catCharacter');
+      const setKind = (k) => update((s) => { if (s.entityPicker) s.entityPicker.kind = k; });
+      const setMode = (m) => update((s) => { if (s.entityPicker) s.entityPicker.mode = m; });
+      const doCreate = () => {
+        const nm = nameDraft.trim();
+        if (!nm) return;
+        setNameDraft('');
+        applyEntityPick(kind, nm, pk.mode, pk.assetId);
+      };
+      return h('div', { className: 'dshic-modal-overlay', onPointerDown: (e) => { if (e.target === e.currentTarget) closeEntityPicker(); } },
+        h('div', { className: 'dshic-modal dshic-bindpicker', 'data-role': 'entity-picker' },
+          h('div', { className: 'dshic-modal-title' }, T('bindPickTitle').replace('{k}', label)),
+          h('div', { className: 'dshic-bind-tabs' },
+            ['character', 'scene', 'prop'].map((k) => h('button', {
+              key: k, type: 'button', className: cls('dshic-mini', kind === k && 'is-active'), onClick: () => setKind(k),
+            }, BIBLE_KIND_LABEL()[k])),
+          ),
+          h('div', { className: 'dshic-bind-tabs' },
+            h('button', { type: 'button', className: cls('dshic-mini', pk.mode !== 'replace' && 'is-active'), onClick: () => setMode('set') }, T('bindModeSet')),
+            h('button', { type: 'button', className: cls('dshic-mini', pk.mode === 'replace' && 'is-active'), onClick: () => setMode('replace') }, T('bindModeReplace')),
+            h('span', { className: 'dshic-hint' }, T('bindModeHint')),
+          ),
+          h('div', { className: 'dshic-bind-list' },
+            list.length
+              ? list.map((e, i) => {
+                  const n = (e && Array.isArray(e.assetIds)) ? e.assetIds.filter(Boolean).length : 0;
+                  return h('div', { key: 'b' + i, className: 'dshic-bind-row' },
+                    h('button', { type: 'button', className: 'dshic-bind-pick', onClick: () => applyEntityPick(kind, e && e.name, pk.mode, pk.assetId) },
+                      h('span', { className: 'dshic-bind-name' }, String((e && e.name) || '') || '—'),
+                      h('span', { className: 'dshic-tag' }, n ? T('bindHasImage').replace('{n}', String(n)) : T('bindNoImage')),
+                    ),
+                    h('button', {
+                      type: 'button', className: 'dshic-iconbtn', title: T('copyPrompt'),
+                      onPointerDown: (ev) => ev.stopPropagation(), onClick: () => copyEntityPrompt(e),
+                    }, Ic('copy', 11)),
+                  );
+                })
+              : h('div', { className: 'dshic-hint' }, T('bindEmptyList').replace('{k}', label)),
+          ),
+          h('div', { className: 'dshic-bind-new' },
+            h('input', {
+              className: 'dshic-input', value: nameDraft, placeholder: T('bindNewHint').replace('{k}', label),
+              onChange: (e) => setNameDraft(e.target.value),
+              onKeyDown: (e) => { if (e.key === 'Enter') doCreate(); },
+              onPointerDown: (e) => e.stopPropagation(),
+            }),
+            h('button', { type: 'button', className: 'dshic-btn dshic-primary', disabled: !nameDraft.trim(), onClick: doCreate },
+              T('bindNewBtn').replace('{k}', label)),
+          ),
+          h('div', { className: 'dshic-modal-actions' },
+            h('button', { type: 'button', className: 'dshic-btn dshic-btn-outline', onClick: closeEntityPicker }, T('cancel'))),
+        ));
+    }
+
     /** 删除资产确认框：与项目删除同一套交互 —— 名字可选中，手打确认，不做一键填入。 */
     function DeleteAssetModal({ target, name = '', setName = () => {}, onCancel = () => {}, onConfirm = () => {} }) {
       const matched = String(name || '').trim() === (target.name || '') && String(name || '').trim() !== '';
@@ -24319,7 +24539,7 @@ const DIRECTOR_KEY_HELP = [
       return h('div', { className: 'dshic-asset-thumb', style: { display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dsw-alias-brand-primary)' } },
         Ic('camera', 26));
     }
-    function AssetCard({ a, checked = false, onToggleSel = () => {}, onAdd, onDel, onCat, onRename, onMove, onMeta = () => {}, projectName }) {
+    function AssetCard({ a, checked = false, onToggleSel = () => {}, onAdd, onDel, onCat, onRename, onMove, onMeta = () => {}, onBind = () => {}, projectName }) {
       const url = useAssetUrl(a.kind === 'text' ? null : a.id);
       const [craftFor, setCraftFor] = useState(false);
       const [renaming, setRenaming] = useState(false);
@@ -24436,6 +24656,25 @@ const DIRECTOR_KEY_HELP = [
                 onClick: (e) => { e.stopPropagation(); syncAssetToDisk(a, { force: true }).then(() => toast(T('craftSyncOne') + ' ✓')).catch(() => { /* craftFetch 已提示 */ }); },
                 onPointerDown: (e) => e.stopPropagation(),
               }, Ic('upload', 11))
+            : null,
+          a.kind === 'image'
+            ? h('button', {
+                type: 'button', className: 'dshic-iconbtn', title: T('bindMenu'),
+                onPointerDown: (e) => e.stopPropagation(),
+                onClick: (e) => { e.stopPropagation(); onBind(a); },
+              }, Ic('tag', 11))
+            : null,
+          (a.kind === 'image' || a.kind === 'video')
+            ? h('button', {
+                type: 'button', className: 'dshic-iconbtn', title: T('copyPrompt'),
+                onPointerDown: (e) => e.stopPropagation(),
+                onClick: (e) => {
+                  e.stopPropagation();
+                  const t = String(a.prompt || '').trim();
+                  if (!t) { toast(T('copyPromptEmpty')); return; }
+                  copyText(t, T('copyPromptDone'));
+                },
+              }, Ic('copy', 11))
             : null,
           h('button', {
             type: 'button', className: 'dshic-iconbtn', title: T('download'),
@@ -26754,6 +26993,7 @@ const DIRECTOR_KEY_HELP = [
         h(DirectorStage),        // 3D 导演台（全屏浮层；左侧图标列入口，S.directorOpen 控制）
         h(ProjectNameDialog),    // 新建 / 重命名项目（空名校验）
         S.menu ? h(ContextMenu, { menu: S.menu }) : null,
+        S.entityPicker ? h(EntityPicker) : null,
         h(ProductionConsole),
         S.lightbox ? h(Lightbox) : null,
         S.supportOpen ? h(SupportDialog) : null,
@@ -27650,6 +27890,8 @@ const DIRECTOR_KEY_HELP = [
             addNodeAtPoint, autoArrangeNodes,
             // 选区批量执行：按类型分组（空白右键菜单入口）+ 打开执行台，供回归测试直接驱动
             batchSelectionByType, openBatchConsole, batchExpand,
+            // 把图设为/替换角色·道具·场景图（设定集 assetIds 绑定）+ 提示词复制，供回归测试直接驱动
+            openEntityPicker, bindAssetToBibleEntry, markAssetAsEntity, copyNodePrompt, bibleEntryList,
             // 资产批量导入落点：现有节点最右侧之外按列铺开（一列 ≤5，零重叠），供回归测试直接断言
             layoutBatchColumns,
             // 资产页分页跳转（页码输入 → 0-based 页；非法文本 null、越界夹取）
