@@ -14015,12 +14015,12 @@ function queueThumb(assetId) {
         startPan(e);
       }
     }
-    function startPan(e) {
+    function startPan(e, forcedEl) {
       drag.mode = 'pan';
       drag.sx = e.clientX; drag.sy = e.clientY;
       // 用事件当前元素而不是模块级 canvasEl：切到「小说」再切回来时画布会重新挂载，
       // canvasEl 可能已为 null，捕获失败会让平移在指针移出元素时“断线”。
-      const panEl = (e && e.currentTarget) || canvasEl;
+      const panEl = forcedEl || (e && e.currentTarget) || canvasEl;
       try { if (panEl && panEl.setPointerCapture) panEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
       try { if (panEl) panEl.classList.add('is-panning'); } catch { /* 忽略 */ }
     }
@@ -27375,13 +27375,39 @@ const DIRECTOR_KEY_HELP = [
         };
         const onBlur = () => { setSpace(false); resetDrag(); };
         const onVis = () => { if (document.hidden) onBlur(); };
+        // 兜底平移：即使画布根的 React 指针事件被异常拦截（浮层遮挡/捕获丢失/组件复用），
+        // 按住空格拖动时 window 捕获阶段照样移动视口——保证「画布一定能挪动」这条底线。
+        const onWinDown = (e) => {
+          if (!spacePanDown || e.button !== 0 || isTyping()) return;
+          const root = rootRef.current;
+          if (!root || !root.contains(e.target)) return;
+          if (e.target.closest && e.target.closest('.dshic-composer')) return;
+          e.preventDefault();
+          startPan(e, root);
+        };
+        const onWinMove = (e) => {
+          if (drag.mode !== 'pan') return;
+          const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+          if (!dx && !dy) return;
+          setView(V.x + dx, V.y + dy, V.scale, false);
+          drag.sx = e.clientX; drag.sy = e.clientY;
+        };
+        const onWinUp = () => { if (drag.mode === 'pan') resetDrag(); };
         window.addEventListener('keydown', onKeyDown, true);
+        window.addEventListener('pointerdown', onWinDown, true);
+        window.addEventListener('pointermove', onWinMove, true);
+        window.addEventListener('pointerup', onWinUp, true);
+        window.addEventListener('pointercancel', onWinUp, true);
         window.addEventListener('keyup', onKeyUp, true);
         window.addEventListener('blur', onBlur);
         document.addEventListener('visibilitychange', onVis);
         return () => {
           window.removeEventListener('keydown', onKeyDown, true);
           window.removeEventListener('keyup', onKeyUp, true);
+          window.removeEventListener('pointerdown', onWinDown, true);
+          window.removeEventListener('pointermove', onWinMove, true);
+          window.removeEventListener('pointerup', onWinUp, true);
+          window.removeEventListener('pointercancel', onWinUp, true);
           window.removeEventListener('blur', onBlur);
           document.removeEventListener('visibilitychange', onVis);
         };
