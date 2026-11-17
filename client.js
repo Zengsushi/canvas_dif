@@ -3778,6 +3778,9 @@ body[data-ds-dark-theme] .dshic-inline-input{border-color:var(--dsw-alias-border
 .dshic-world{position:absolute;left:0;top:0;transform-origin:0 0;}
 /* 仅在交互中提升图层：常驻 will-change 会把整张画布变成一张巨大纹理，页面缩放/重排时先白一片 */
 .dshic-world.is-interacting{will-change:transform;}
+/* 空格/中键平移：指针压在节点上也要给出抓手指针（节点盖满视口时的逃生口） */
+.dshic-canvas.is-space-pan{cursor:grab;}
+.dshic-canvas.is-panning{cursor:grabbing;}
 .dshic-edges{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;}
 .dshic-edge{fill:none;stroke-width:2;pointer-events:none;}
 .dshic-edge.kind-text{stroke:var(--dsw-alias-label-secondary);}
@@ -13919,6 +13922,8 @@ function queueThumb(assetId) {
       // P1：拖动期间的 rAF 合并 + 吸附候选（拖起时算一次，指针移动帧里只遍历候选，不遍历全部节点）
       snapCandidates: null, raf: 0, pendingEvent: null, lastEvent: null,
     };
+    // 空格键 = 临时平移模式：按住空格拖动画布任意位置（含压在节点上）都平移视口。
+    let spacePanDown = false;
     /** 吸附/推挤候选：被拖节点 + 与其相连的节点 + 起手位置附近（约 1.5 个视口）的节点。
      *  拖动帧里只遍历这份小列表（不再每帧 Object.values(全图)）。 */
     function buildDragCandidates(movingIds) {
@@ -13993,6 +13998,8 @@ function queueThumb(assetId) {
       const target = e.target;
       // 生成面板是浮层（不在 world 内）：面板内的点击不能触发画布平移/清空选择
       if (target.closest && target.closest('.dshic-composer')) return;
+      // 空格 + 左键：强制平移。节点铺满视口、或有透明浮层压住背景时，这是唯一的挪动画布入口。
+      if (spacePanDown && e.button === 0) { e.preventDefault(); startPan(e); return; }
       const onBackground = !(target.closest && target.closest('[data-node-id]'));
       if (e.button === 1) {
         e.preventDefault();
@@ -14011,7 +14018,11 @@ function queueThumb(assetId) {
     function startPan(e) {
       drag.mode = 'pan';
       drag.sx = e.clientX; drag.sy = e.clientY;
-      try { canvasEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
+      // 用事件当前元素而不是模块级 canvasEl：切到「小说」再切回来时画布会重新挂载，
+      // canvasEl 可能已为 null，捕获失败会让平移在指针移出元素时“断线”。
+      const panEl = (e && e.currentTarget) || canvasEl;
+      try { if (panEl && panEl.setPointerCapture) panEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
+      try { if (panEl) panEl.classList.add('is-panning'); } catch { /* 忽略 */ }
     }
     function startMarquee(e) {
       drag.mode = 'marquee';
@@ -14021,7 +14032,14 @@ function queueThumb(assetId) {
       try { canvasEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
     }
     function onNodePointerDown(e, n) {
-      if (e.button === 2 || e.button === 1) return;
+      // 空格 + 左键、或中键（任何位置，包括节点上）都平移画布
+      if (e.button === 1 || (spacePanDown && e.button === 0)) {
+        e.preventDefault();
+        e.stopPropagation();
+        startPan(e);
+        return;
+      }
+      if (e.button === 2) return;
       const t = e.target;
       // 真正的交互控件（按钮/下拉/视频控件/可编辑输入）保留原生行为；
       // 内容区（图片/视频预览、文本正文、镜头清单）只负责选中 + 弹面板，不再从这里发起拖动。
@@ -14215,6 +14233,11 @@ function queueThumb(assetId) {
     }
     function onCanvasPointerUp(e) {
   try { if (worldEl) worldEl.classList.remove('is-interacting'); } catch { /* 忽略 */ }
+      try {
+        const k = canvasEl && canvasEl.classList ? canvasEl : null;
+        if (k) k.classList.remove('is-panning');
+        document.querySelectorAll('.dshic-canvas.is-panning').forEach((el) => el.classList.remove('is-panning'));
+      } catch { /* 忽略 */ }
       if (!drag.mode) return;
       const mode = drag.mode;
       // 收尾：先补上最后一帧拖拽（rAF 尚未执行的 pointermove），清掉视觉 class 与 Alt 标记
@@ -27319,6 +27342,49 @@ const DIRECTOR_KEY_HELP = [
         applyViewToDomSoon = () => applyViewToDom();
         window.addEventListener('keydown', onWindowKeyDown);
         return () => window.removeEventListener('keydown', onWindowKeyDown);
+      }, []);
+      // 平移体验兜底：空格键切换光标、窗口失焦/切标签页时复位拖动状态，
+      // 避免指针移出窗口后 pointerup 丢失，画布“粘”在拖动模式里不再响应。
+      useEffect(() => {
+        const isTyping = () => {
+          const ae = document.activeElement;
+          return !!(ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable));
+        };
+        const setSpace = (on) => {
+          spacePanDown = !!on;
+          try { if (rootRef.current) rootRef.current.classList.toggle('is-space-pan', !!on); } catch { /* 忽略 */ }
+        };
+        const onKeyDown = (e) => {
+          if (e.code !== 'Space' && e.key !== ' ') return;
+          const t = e.target;
+          if (isTyping()) return;
+          if (t && t.closest && t.closest('button,select,a,input,textarea')) return;
+          setSpace(true);
+          e.preventDefault();
+        };
+        const onKeyUp = (e) => {
+          if (e && (e.code === 'Space' || e.key === ' ')) setSpace(false);
+        };
+        const resetDrag = () => {
+          drag.mode = null; drag.nodeStarts = null; drag.marquee = null; drag.linkFrom = null;
+          drag.pendingEvent = null; drag.lastEvent = null; drag.raf = 0;
+          try {
+            document.querySelectorAll('.dshic-canvas.is-panning').forEach((el) => el.classList.remove('is-panning'));
+            document.querySelectorAll('.dshic-world.is-interacting').forEach((el) => el.classList.remove('is-interacting'));
+          } catch { /* 忽略 */ }
+        };
+        const onBlur = () => { setSpace(false); resetDrag(); };
+        const onVis = () => { if (document.hidden) onBlur(); };
+        window.addEventListener('keydown', onKeyDown, true);
+        window.addEventListener('keyup', onKeyUp, true);
+        window.addEventListener('blur', onBlur);
+        document.addEventListener('visibilitychange', onVis);
+        return () => {
+          window.removeEventListener('keydown', onKeyDown, true);
+          window.removeEventListener('keyup', onKeyUp, true);
+          window.removeEventListener('blur', onBlur);
+          document.removeEventListener('visibilitychange', onVis);
+        };
       }, []);
       useEffect(() => {
         const el = rootRef.current;
