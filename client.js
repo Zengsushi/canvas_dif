@@ -460,6 +460,11 @@ function revealCanvasInRight() {
       'novelTabShelf': '书架',
       'novelTabCrawl': '爬取',
       'novelTabRewrite': '改写台',
+      'novelToScript': '存入剧本（改编）',
+      'novelToScriptHint': '建一个剧本节点：本章原文作为创作素材，点节点「生成」即改编为分场剧本',
+      'novelToScriptRaw': '原文直存',
+      'novelToScriptRawHint': '把本章原文直接写进剧本节点的成稿区（不调用模型）',
+      'novelToScriptAll': '整本存入剧本',
       'zoomIn': '放大',
       'zoomOut': '缩小',
       'projects': '项目',
@@ -1813,6 +1818,11 @@ function revealCanvasInRight() {
       'novelTabShelf': 'Shelf',
       'novelTabCrawl': 'Crawl',
       'novelTabRewrite': 'Rewrite',
+      'novelToScript': 'To script (adapt)',
+      'novelToScriptHint': 'Creates a script node with this chapter as source material; press Generate inside the node to adapt it into a scene-split script',
+      'novelToScriptRaw': 'Raw text',
+      'novelToScriptRawHint': 'Writes the chapter text straight into the script output (no model call)',
+      'novelToScriptAll': 'Whole book to script',
       'zoomIn': 'Zoom in',
       'zoomOut': 'Zoom out',
       'projects': 'Projects',
@@ -22787,16 +22797,83 @@ const DIRECTOR_KEY_HELP = [
           h('button', { type: 'button', className: 'dshic-mini', onClick: () => updateNovel((n) => { n.importOpen = false; }) }, '取消')));
     }
 
+    // ── 小说章节 → 画布剧本节点：「小说」页与「画布」页之间的桥 ────────────
+    // 采集/导入的章节正文在这里转成剧本节点：默认只写创作意图（idea），点节点「生成」即由模型改编成
+    // 【场N】分场剧本；raw=true 时把原文直接写进成稿区（不调模型，适合已经分好场的文本）。
+    const NOVEL_SCRIPT_MAX = 12000;
+    function novelCanvasReady() { return !!(S.activeId && S.graph && S.graph.nodes); }
+    function novelScriptIdea(book, ch, text) {
+      return [
+        '【小说改编】《' + ((book && book.title) || '小说') + '》第' + ((ch && ch.idx) || '?') + '章 ' + ((ch && ch.title) || ''),
+        '把下面这一章原文改编成可拍摄的短剧剧本：保留主线情节、人物关系与关键台词，每个场景以【场N】单独一行开头，人物/场景/道具名称沿用原文。',
+        '',
+        '原文：',
+        String(text || '').trim(),
+      ].join('\n');
+    }
+    async function novelWriteScripts(list, raw) {
+      const nv = S.novel || {};
+      const novelId = nv.openId;
+      const book = nv.openBook;
+      const rows = (list || []).slice(0, 30);
+      if (!novelId || !rows.length) return;
+      if (!novelCanvasReady()) { toast('请先在「画布」里打开或新建一个项目，再回来导入章节'); return; }
+      updateNovel((n) => { n.pushBusy = true; });
+      const got = [];
+      try {
+        for (const ch of rows) {
+          let text = '';
+          try {
+            const d = await novelApi('/api/v1/novels/' + encodeURIComponent(novelId) + '/chapters/' + encodeURIComponent(ch.id));
+            text = String((d && d.content) || '');
+          } catch (e) { text = ''; }
+          if (String(text || '').trim()) got.push({ ch: ch, text: text });
+        }
+      } finally { updateNovel((n) => { n.pushBusy = false; }); }
+      if (!got.length) { toast('没有取到章节正文'); return; }
+      update((s) => {
+        for (const it of got) {
+          const nd = newNode('script', nextNodePosClient('script', null));
+          nd.data.label = ('《' + ((book && book.title) || '小说') + '》第' + it.ch.idx + '章').slice(0, 40);
+          nd.data.idea = novelScriptIdea(book, it.ch, it.text.slice(0, NOVEL_SCRIPT_MAX));
+          nd.data.output = raw ? it.text : '';
+          nd.data.aiStatus = 'idle';
+          nd.data.aiError = null;
+          nd.data.sourceNovel = { novelId: novelId, chapterId: it.ch.id, idx: it.ch.idx, title: (it.ch && it.ch.title) || '' };
+          s.graph.nodes[nd.id] = nd;
+        }
+        s.sel = new Set();
+      });
+      pushHistory();
+      flushSave();
+      setAppTab('canvas');
+      setTimeout(() => { try { fitView(); } catch (e) { /* 视图复位失败不影响写入结果 */ } }, 80);
+      toast(raw
+        ? ('已把 ' + got.length + ' 章原文写进剧本节点（已切回画布）')
+        : ('已建 ' + got.length + ' 个剧本节点：点各节点「生成」改编为分场剧本'));
+    }
+    function novelWriteOneChapter(raw) {
+      const rd = (S.novel || {}).reading;
+      if (!rd || !rd.id) { toast('先点开一章正文再导入'); return; }
+      novelWriteScripts([{ id: rd.id, idx: rd.idx, title: rd.title }], raw);
+    }
+    function novelWriteAllChapters() {
+      const list = (S.novel || {}).chapters || [];
+      if (!list.length) { toast('这本书还没有章节'); return; }
+      novelWriteScripts(list, false);
+    }
     function NovelBookView({ id }) {
       const nv = S.novel || {};
       const b = nv.openBook;
       const chapters = nv.chapters || [];
       const reading = nv.reading;
+      const pushBusy = !!nv.pushBusy;
       return h('div', { className: 'dshic-novel-bookview' },
         h('div', { className: 'dshic-novel-bookview-head' },
           h('span', { className: 'dshic-novel-bookview-title' }, (b && b.title) || ''),
           h('span', { className: 'dshic-hint' }, (nv.chapTotal || chapters.length) + ' 章'),
           h('span', { className: 'dshic-flex' }),
+          h('button', { type: 'button', className: 'dshic-mini', disabled: pushBusy, title: T('novelToScriptHint'), onClick: () => novelWriteAllChapters() }, pushBusy ? '写入中…' : T('novelToScriptAll')),
           h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelExport(id, b && b.title) }, '导出 TXT'),
           h('button', { type: 'button', className: 'dshic-mini', onClick: () => novelDeleteBook(id, b && b.title) }, '删除')),
         h('div', { className: 'dshic-novel-bookview-body' },
@@ -22813,7 +22890,11 @@ const DIRECTOR_KEY_HELP = [
           h('div', { className: 'dshic-novel-read' },
             reading
               ? [
-                h('div', { key: 't', className: 'dshic-novel-read-title' }, reading.title || ''),
+                h('div', { key: 'bar', style: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 } },
+                  h('span', { key: 't', className: 'dshic-novel-read-title', style: { margin: 0 } }, reading.title || ''),
+                  h('span', { key: 'f', className: 'dshic-flex' }),
+                  h('button', { key: 'a', type: 'button', className: 'dshic-mini', disabled: pushBusy || reading.busy, title: T('novelToScriptHint'), onClick: () => novelWriteOneChapter(false) }, T('novelToScript')),
+                  h('button', { key: 'r', type: 'button', className: 'dshic-mini', disabled: pushBusy || reading.busy, title: T('novelToScriptRawHint'), onClick: () => novelWriteOneChapter(true) }, T('novelToScriptRaw'))),
                 reading.busy
                   ? h('div', { key: 'b', className: 'dshic-hint' }, '加载正文…')
                   : h('pre', { key: 'c', className: 'dshic-novel-read-body' }, reading.content || '(空)'),
