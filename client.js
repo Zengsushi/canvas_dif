@@ -12228,6 +12228,7 @@ function queueThumb(assetId) {
       if (stale) { try { saveGraphDoc(S.activeId, S.graph); } catch { /* 忽略 */ } }
       V.x = S.graph.view.x; V.y = S.graph.view.y; V.scale = S.graph.view.scale;
       S.ready = true;
+      scheduleViewHeal();
       // 预热设定集快照：页面加载时视本地版本为"已同步"，避免把旧版本推回覆盖对话侧的新设定
       for (const p of S.projects) biblePushSnap.set(p.id, bibleSnapshot(p.id));
     }
@@ -12304,6 +12305,29 @@ function queueThumb(assetId) {
     // ============================================================
     const V = { x: 60, y: 40, scale: 1 };
     let worldEl = null;
+    // 自愈访问器：画布可能同时挂在「全屏面板」与「右侧栏」两个宿主上，模块级单例会在另一个
+    // 实例卸载时被置空（或指向已脱离文档的旧 DOM）。一旦失效且无人重建，applyViewToDom /
+    // containerRect / screenToWorld 全部静默变成 no-op —— 表现就是缩放数字会跳、画面却不动、
+    // 拖拽也挪不动（「画布视图失效」）。这里每次取用都校验 isConnected，失效就重新找回活的 DOM。
+    function liveCanvasEl() {
+      if (!canvasEl || !canvasEl.isConnected) {
+        let found = null;
+        const all = document.querySelectorAll('.dshic-canvas');
+        for (const el of all) { if (el.isConnected && el.offsetParent !== null) { found = el; break; } }
+        if (!found && all.length) found = all[all.length - 1];
+        if (found) canvasEl = found;
+      }
+      return canvasEl;
+    }
+    function liveWorldEl() {
+      if (!worldEl || !worldEl.isConnected) {
+        const scope = liveCanvasEl();
+        const found = (scope && scope.querySelector ? scope.querySelector('.dshic-world') : null)
+          || document.querySelector('.dshic-world');
+        if (found && found.isConnected) worldEl = found;
+      }
+      return worldEl;
+    }
     let canvasEl = null;
     const nodeEls = new Map();     // nodeId -> HTMLElement
     const edgePathEls = new Map(); // edgeId -> SVGPathElement
@@ -12323,10 +12347,12 @@ function queueThumb(assetId) {
     }
 
     function applyViewToDom() {
-      if (worldEl) worldEl.style.transform = `translate(${V.x}px, ${V.y}px) scale(${V.scale})`;
-      if (canvasEl) {
-        canvasEl.style.backgroundSize = `${22 * V.scale}px ${22 * V.scale}px`;
-        canvasEl.style.backgroundPosition = `${V.x}px ${V.y}px`;
+      const w = liveWorldEl();
+      if (w) w.style.transform = `translate(${V.x}px, ${V.y}px) scale(${V.scale})`;
+      const c = liveCanvasEl();
+      if (c) {
+        c.style.backgroundSize = `${22 * V.scale}px ${22 * V.scale}px`;
+        c.style.backgroundPosition = `${V.x}px ${V.y}px`;
       }
       // 节点在屏幕上移动了：紧贴节点下方弹出的生成面板必须同步跟随（用节点真实 DOM 矩形计算）
       try { if (composerReposition) composerReposition(); } catch { /* 定位失败不影响画布 */ }
@@ -12348,7 +12374,26 @@ function queueThumb(assetId) {
     }
     let commitTimer = null;
 
-    function containerRect() { return canvasEl ? canvasEl.getBoundingClientRect() : { left: 0, top: 0, width: 800, height: 600 }; }
+    // 视图自愈：历史版本在容器 rect 为 0 时调 fitView，把 scale 写成下限 0.15 并存进了文件，
+    // 重开就停在最小缩放（标签 15% 而画面是旧 transform）。数据加载/挂载后等一会儿，若仍贴着
+    // 下限且容器已经有真实尺寸，就重排一次视图。只在贴着下限时触发，不会打扰正常缩放。
+    let viewHealTimer = 0;
+    function scheduleViewHeal() {
+      if (viewHealTimer) return;
+      viewHealTimer = setTimeout(() => {
+        viewHealTimer = 0;
+        try {
+          if (V.scale > 0.1501) return;
+          const r = containerRect();
+          if (r.width > 0 && r.height > 0) fitView();
+        } catch { /* 自愈失败不影响数据 */ }
+      }, 700);
+    }
+
+    function containerRect() {
+      const el = liveCanvasEl();
+      return el ? el.getBoundingClientRect() : { left: 0, top: 0, width: 800, height: 600 };
+    }
     function screenToWorld(sx, sy) {
       const r = containerRect();
       return { x: (sx - r.left - V.x) / V.scale, y: (sy - r.top - V.y) / V.scale };
@@ -14029,7 +14074,8 @@ function queueThumb(assetId) {
       drag.sx = e.clientX; drag.sy = e.clientY;
       const w = screenToWorld(e.clientX, e.clientY);
       drag.marquee = { x0: w.x, y0: w.y, x1: w.x, y1: w.y };
-      try { canvasEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
+      const mc = liveCanvasEl();
+      try { if (mc) mc.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
     }
     function onNodePointerDown(e, n) {
       // 空格 + 左键、或中键（任何位置，包括节点上）都平移画布
@@ -14088,8 +14134,9 @@ function queueThumb(assetId) {
       drag.pendingEvent = null; drag.lastEvent = null;
       if (drag.raf) { try { cancelAnimationFrame(drag.raf); } catch { /* 忽略 */ } drag.raf = 0; }
       // P2：拖动期间禁用节点 sheen filter 动画（filter 动画会让整块节点每帧重新光栅化）
-      try { if (canvasEl) canvasEl.classList.add('is-node-dragging'); } catch { /* 忽略 */ }
-      try { canvasEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
+      const dc = liveCanvasEl();
+      try { if (dc) dc.classList.add('is-node-dragging'); } catch { /* 忽略 */ }
+      try { if (dc) dc.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
     }
     function onPortPointerDown(e, n, port, dir) {
       if (e.button !== 0) return;
@@ -14098,7 +14145,8 @@ function queueThumb(assetId) {
       closeMenu();
       drag.mode = 'link';
       drag.linkFrom = { node: n, port: port.id, dir };
-      try { canvasEl.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
+      const lc = liveCanvasEl();
+      try { if (lc) lc.setPointerCapture(e.pointerId); } catch { /* 忽略 */ }
       updateTempEdge(e.clientX, e.clientY);
       notify();
     }
@@ -14234,7 +14282,8 @@ function queueThumb(assetId) {
     function onCanvasPointerUp(e) {
   try { if (worldEl) worldEl.classList.remove('is-interacting'); } catch { /* 忽略 */ }
       try {
-        const k = canvasEl && canvasEl.classList ? canvasEl : null;
+        const lvc = liveCanvasEl();
+        const k = lvc && lvc.classList ? lvc : null;
         if (k) k.classList.remove('is-panning');
         document.querySelectorAll('.dshic-canvas.is-panning').forEach((el) => el.classList.remove('is-panning'));
       } catch { /* 忽略 */ }
@@ -14386,6 +14435,9 @@ function queueThumb(assetId) {
     function fitView() {
       const nodes = Object.values(S.graph.nodes);
       const r = containerRect();
+      // 容器还没量出尺寸（挂载瞬间 / 宿主切换中 rect 全 0）时绝不写入退化视图：那会把
+      // scale 压到下限 0.15，之后标签显示「15%」而世界层还是旧 transform，整块画布像卡死。
+      if (!(r.width > 0 && r.height > 0)) { applyViewToDom(); return; }
       if (!nodes.length) { setView(60, 40, 1, true); return; }
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const n of nodes) {
@@ -27181,7 +27233,7 @@ const DIRECTOR_KEY_HELP = [
     function Minimap() {
       const nodes = Object.values(S.graph.nodes);
       const dragRef = useRef(false);
-      if (!nodes.length || !canvasEl) return null;
+      if (!nodes.length || !liveCanvasEl()) return null;
       const MW = 160, MH = 100, pad = 6;
       const r = containerRect();
       let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
@@ -27198,7 +27250,7 @@ const DIRECTOR_KEY_HELP = [
       const ox = pad + (MW - pad * 2 - bw * s2) / 2;
       const oy = pad + (MH - pad * 2 - bh * s2) / 2;
       const navigateTo = (clientX, clientY, commit) => {
-        const rect = canvasEl.getBoundingClientRect();
+        const rect = liveCanvasEl().getBoundingClientRect();
         const mx = clientX - rect.left - (r.width - MW), my = clientY - rect.top - (r.height - MH);
         const wx = bx0 + (mx - ox) / s2, wy = by0 + (my - oy) / s2;
         setView(r.width / 2 - wx * V.scale, r.height / 2 - wy * V.scale, V.scale, !!commit);
@@ -27336,7 +27388,17 @@ const DIRECTOR_KEY_HELP = [
       useLayoutEffect(() => {
         canvasEl = rootRef.current;
         applyViewToDom();
-        return () => { canvasEl = null; worldEl = null; nodeEls.clear(); edgePathEls.clear(); tempEdgeEl = null; marqueeEl = null; };
+        // 视图自愈：历史上 rect 为 0 时 fitView 会把 scale 写成 0.15 并存进文件，重开就停在
+        // 最小缩放下限。等一帧拿到真实容器尺寸后重排一次视图（仅在贴着下限时才做）。
+        scheduleViewHeal();
+        return () => {
+          // 只在自己这块 DOM 真的没了时清理：画布可能同时挂在「全屏面板」与「右侧栏」两个宿主，
+          // 另一个实例卸载时若无条件置空，会让还活着的实例缩放/平移全部静默失效（视图卡死）。
+          const mine = rootRef.current;
+          if (mine && mine.isConnected) return;
+          canvasEl = null; worldEl = null;
+          nodeEls.clear(); edgePathEls.clear(); tempEdgeEl = null; marqueeEl = null;
+        };
       }, []);
       useEffect(() => {
         applyViewToDomSoon = () => applyViewToDom();
@@ -27525,7 +27587,8 @@ const DIRECTOR_KEY_HELP = [
           },
             h('div', {
               className: 'dshic-world',
-              ref: (el) => { worldEl = el; if (el) applyViewToDom(); },
+              // React 卸载时会以 null 调 ref：绝不能把别处还在用的 worldEl 清空
+          ref: (el) => { if (!el) return; worldEl = el; applyViewToDom(); },
             },
               h(EdgeLayer),
               nodes.filter((nd) => nd.type === 'group').map((n) => h(NodeShell, { key: n.id, n, edgeSig: '' })),
