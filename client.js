@@ -451,8 +451,8 @@ function revealCanvasInRight() {
       'stop': '停止',
       'playVideo': '播放',
       'fit': '适应视图',
-      'arrange': '自动排布（一类型一列，绝不重叠）',
-      'arrangeDone': '已自动排布：移动 {n} 个节点',
+      'arrange': '自动排布（层级多列：场带 + 视频就近 + 资产分组）',
+      'arrangeDone': '已自动排布：移动 {n} 个节点（{b} 个场带）',
       'arrangeNone': '没有可排布的节点',
       'dragToPlace': '拖到画布上的位置松手即在此处新建',
       'appTabCanvas': '画布',
@@ -1861,8 +1861,8 @@ function revealCanvasInRight() {
       'stop': 'Stop',
       'playVideo': 'Play',
       'fit': 'Fit view',
-      'arrange': 'Auto arrange (one type per column, no overlap)',
-      'arrangeDone': 'Auto arranged: {n} node(s) moved',
+      'arrange': 'Auto arrange (hierarchy: scene bands, videos next to storyboards, asset groups)',
+      'arrangeDone': 'Auto arranged: {n} node(s) moved across {b} band(s)',
       'arrangeNone': 'Nothing to arrange',
       'dragToPlace': 'Drag onto the canvas to drop it where you point',
       'appTabCanvas': 'Canvas',
@@ -14840,64 +14840,214 @@ function queueThumb(assetId) {
     function closeMenu() {
       if (S.menu) { S.menu = null; notify(); }
     }
-    /** 自动排布（一键整理画布）：一类型一列、列序固定（剧本→文本→镜头→分镜表→图片→视频→音频→成片），
-     *  列内保持原竖向顺序（= 叙事顺序），列宽取列内最大宽度、列间 80，绝不重叠。
-     *  pinned 节点原地不动且被避让；group 节点不参与（成员各自归列）；隐藏节点不参与。 */
-    const ARRANGE_COLUMNS = ['script', 'text', 'shot', 'storyboard', 'image', 'video', 'audio', 'finalcut'];
-    function autoArrangeNodes() {
-      const TOP = 40, GAP_X = 80, GAP_Y = 44, MIN_GAP = 24;
+    /** 自动排布（层级多列）：不再"一类型一列"平铺全局，而是按创作层级分带、分列、就近成组。
+     *  版面结构（左→右 = 读图顺序 = 创作顺序）：
+     *    ① 剧本列：script（章级，通常 1 个），竖排；
+     *    ② 场带区：按节点标签里的【场N】把「场文本 → 分镜表 → 视频段」排成一条横向带，
+     *       一场一带、带内三列；视频段按「段i/n」段号就近堆在该场分镜表右侧，
+     *       每 {@link ARRANGE_VIDEO_PER_COL} 段自动折成一条子列（避免一场 11 段拉成 4000px 长条）；
+     *    ③ 资产区：角色 / 场景 / 道具 / 其他 四组子列（标签前缀优先，其次实体绑定），
+     *       参考图与设定图同组相邻，便于对照；
+     *    ④ 兜底列：镜头/音频/成片等按类型成列排在最后。
+     *  pinned 节点原地不动且被避让；group 节点不参与（成员各自归位）；隐藏节点不参与。 */
+    const ARRANGE_ASSET_KINDS = ['角色', '场景', '道具'];
+    const ARRANGE_TRAIL_TYPES = ['shot', 'audio', 'finalcut'];
+    const ARRANGE_VIDEO_PER_COL = 3;
+
+    function arrangeLabelOf(n) {
+      const d = (n && n.data) || {};
+      return String(d.label || d.name || d.title || '');
+    }
+    /** 场次标签：支持「【场3】」「场3：」「SCENE 3」三种写法，返归一化数字串，没有则空串。 */
+    function arrangeSceneTag(n) {
+      const s = arrangeLabelOf(n);
+      const m = s.match(/【\s*场\s*(\d+)\s*】/) || s.match(/(?:^|[^0-9])场\s*(\d+)/) || s.match(/SCENE\s*(\d+)/i);
+      return m ? String(Number(m[1])) : '';
+    }
+    /** 资产分组：标签「角色-」「场景-」「道具-」前缀优先；「X 参考」这类无前缀的参考图归角色组。 */
+    function arrangeAssetKind(n) {
+      const label = arrangeLabelOf(n);
+      const d = (n && n.data) || {};
+      const entity = String(d.entity || '');
+      if (/^角色[-—_\s]/.test(label) || /^角色[-—_\s]/.test(entity) || /参考$/.test(label)) return '角色';
+      if (/^场景[-—_\s]/.test(label) || /^场景[-—_\s]/.test(entity)) return '场景';
+      if (/^道具[-—_\s]/.test(label) || /^道具[-—_\s]/.test(entity)) return '道具';
+      return '';
+    }
+    function arrangeSegNo(n) {
+      const m = arrangeLabelOf(n).match(/段\s*(\d+)\s*\/\s*(\d+)/);
+      return m ? Number(m[1]) : 0;
+    }
+
+    /** 纯函数：算层级多列排布计划（不写状态，便于回归测试直接驱动）。
+     *  返回 { plan:[{id,x,y,w,h}], bands, assets, trails }。 */
+    function computeArrangePlan(allNodes, opts) {
+      const o = opts || {};
+      const TOP = Number(o.top) || 40;
+      const START_X = Number(o.startX) || 60;
+      const GAP_X = Number(o.gapX) || 90;
+      const GAP_Y = Number(o.gapY) || 40;
+      const GAP_SUB = Number(o.gapSub) || 40;
+      const BAND_GAP = Number(o.bandGap) || 80;
+      const MIN_GAP = 24;
+      const PER_SUB = Math.max(1, Number(o.videoPerCol) || ARRANGE_VIDEO_PER_COL);
       const H = (n) => Number(n && n.h) || 200;
       const W = (n) => Number(n && n.w) || 360;
-      const nodes = Object.values(S.graph.nodes || {});
+      const nodes = (allNodes || []).filter(Boolean);
       const pinned = nodes.filter((n) => n.data && n.data.pinned);
       const movable = nodes.filter((n) => !(n.data && n.data.pinned) && n.type !== 'group' && !(n.data && n.data.hidden));
-      if (!movable.length) { toast(T('arrangeNone')); return 0; }
-      const cols = new Map();
-      for (const n of movable) {
-        const t = ARRANGE_COLUMNS.includes(n.type) ? n.type : ('~' + String(n.type || 'text'));
-        if (!cols.has(t)) cols.set(t, []);
-        cols.get(t).push(n);
-      }
-      // 列内顺序 = 原画布竖向顺序（叙事顺序）；同 y 再按 x，最后按 id 保证稳定
-      for (const list of cols.values()) {
-        list.sort((a, b) => ((Number(a.y) || 0) - (Number(b.y) || 0))
-          || ((Number(a.x) || 0) - (Number(b.x) || 0))
-          || String(a.id).localeCompare(String(b.id)));
-      }
-      const known = ARRANGE_COLUMNS.filter((k) => cols.has(k));
-      const unknown = [...cols.keys()].filter((k) => k.startsWith('~')).sort();
       const plan = [];
-      let x = 60;
-      for (const key of [...known, ...unknown]) {
-        const list = cols.get(key);
-        let y = TOP;
-        for (const n of list) {
-          // 钉住的节点不让路：撞上就整列下移到它下方（上限 200 次防死循环）
-          const hitPinned = (yy) => pinned.find((p) => (x < (Number(p.x) || 0) + W(p) + MIN_GAP)
-            && ((Number(p.x) || 0) < x + W(n) + MIN_GAP)
-            && (yy < (Number(p.y) || 0) + H(p) + MIN_GAP)
-            && ((Number(p.y) || 0) < yy + H(n) + MIN_GAP));
-          let blocker = hitPinned(y);
-          let guard = 0;
-          while (blocker && guard++ < 200) { y = (Number(blocker.y) || 0) + H(blocker) + MIN_GAP; blocker = hitPinned(y); }
-          plan.push({ id: n.id, x: Math.round(x), y: Math.round(y), moved: Math.round(Number(n.x) || 0) !== Math.round(x) || Math.round(Number(n.y) || 0) !== Math.round(y) });
-          y += H(n) + GAP_Y;
+      let maxRight = START_X;
+      const hitPinned = (x, y, w, h) => pinned.find((p) => (Number(p.x) || 0) < x + w + MIN_GAP
+        && x < (Number(p.x) || 0) + W(p) + MIN_GAP
+        && (Number(p.y) || 0) < y + h + MIN_GAP
+        && y < (Number(p.y) || 0) + H(p) + MIN_GAP);
+      const push = (n, x, y) => {
+        const px = Math.round(x);
+        let py = Math.round(y), guard = 0;
+        let b = hitPinned(px, py, W(n), H(n));
+        while (b && guard++ < 200) { py = Math.round((Number(b.y) || 0) + H(b) + MIN_GAP); b = hitPinned(px, py, W(n), H(n)); }
+        const item = { id: n.id, x: px, y: py, w: W(n), h: H(n) };
+        plan.push(item);
+        maxRight = Math.max(maxRight, px + W(n));
+        return item;
+      };
+
+      // ① 分类：剧本 / 资产 / 场带（文本·分镜·视频）/ 兜底
+      const scripts = [], assets = [], trails = [];
+      const bands = new Map();
+      const bandOf = (tag) => {
+        if (!bands.has(tag)) bands.set(tag, { text: [], storyboard: [], video: [], other: [] });
+        return bands.get(tag);
+      };
+      for (const n of movable) {
+        const t = n.type;
+        if (t === 'script') { scripts.push(n); continue; }
+        if (t === 'image') { assets.push(n); continue; }
+        if (t === 'text' || t === 'storyboard' || t === 'video') {
+          const b = bandOf(arrangeSceneTag(n));
+          if (t === 'text') b.text.push(n); else if (t === 'storyboard') b.storyboard.push(n); else b.video.push(n);
+          continue;
         }
-        x += Math.max(...list.map(W)) + GAP_X;
+        if (ARRANGE_TRAIL_TYPES.includes(t)) { trails.push(n); continue; }
+        bandOf('~').other.push(n);
       }
+      const byYX = (a, b) => ((Number(a.y) || 0) - (Number(b.y) || 0))
+        || ((Number(a.x) || 0) - (Number(b.x) || 0))
+        || String(a.id).localeCompare(String(b.id));
+      scripts.sort(byYX);
+      for (const b of bands.values()) {
+        b.text.sort(byYX);
+        b.storyboard.sort(byYX);
+        b.video.sort((a, c) => (arrangeSegNo(a) - arrangeSegNo(c)) || byYX(a, c));
+        b.other.sort(byYX);
+      }
+      const maxW = (list, fb) => (list && list.length ? Math.max(...list.map(W)) : fb);
+      const bandKeys = [...bands.keys()].filter((k) => k !== '~').sort((a, b) => Number(a) - Number(b));
+      if (bands.has('~')) bandKeys.push('~');
+      const lists = (fn) => bandKeys.flatMap((k) => fn(bands.get(k)));
+      const textW = maxW(lists((b) => b.text), 0);
+      const sbW = maxW(lists((b) => b.storyboard), 0);
+      const vidW = maxW(lists((b) => b.video), 0);
+
+      // ② 剧本列
+      let x = START_X;
+      if (scripts.length) {
+        let y = TOP;
+        for (const n of scripts) { const it = push(n, x, y); y = it.y + it.h + GAP_Y; }
+        x += maxW(scripts, 360) + GAP_X;
+      }
+
+      // ③ 场带区：每带「文本列 | 分镜列 | 视频子列…」，带与带上下相接
+      const cols = [];
+      if (textW) cols.push({ key: 'text', w: textW });
+      if (sbW) cols.push({ key: 'storyboard', w: sbW });
+      if (vidW) cols.push({ key: 'video', w: vidW });
+      const colX = (key) => {
+        let cx = x;
+        for (const c of cols) { if (c.key === key) return cx; cx += c.w + GAP_X; }
+        return x;
+      };
+      if (bandKeys.length && cols.length) {
+        let y = TOP;
+        for (const key of bandKeys) {
+          const b = bands.get(key);
+          let yText = y, hText = 0;
+          for (const n of b.text) { const it = push(n, colX('text'), yText); yText = it.y + it.h + GAP_Y; }
+          if (b.text.length) hText = yText - GAP_Y - y;
+          let ySb = y, hSb = 0;
+          for (const n of b.storyboard) { const it = push(n, colX('storyboard'), ySb); ySb = it.y + it.h + GAP_Y; }
+          if (b.storyboard.length) hSb = ySb - GAP_Y - y;
+          let hVid = 0;
+          for (let i = 0, ci = 0; i < b.video.length; i += PER_SUB, ci++) {
+            const chunk = b.video.slice(i, i + PER_SUB);
+            let vy = y;
+            for (const n of chunk) { const it = push(n, colX('video') + ci * (vidW + GAP_SUB), vy); vy = it.y + it.h + GAP_Y; }
+            if (chunk.length) hVid = Math.max(hVid, vy - GAP_Y - y);
+          }
+          let hOther = 0;
+          if (b.other.length) {
+            let oy = y + (hText ? hText + GAP_Y : 0);
+            for (const n of b.other) { const it = push(n, colX('text'), oy); oy = it.y + it.h + GAP_Y; }
+            hOther = oy - GAP_Y - (y + (hText ? hText + GAP_Y : 0));
+          }
+          y += Math.max(hText, hSb, hVid, hOther, 0) + BAND_GAP;
+        }
+      }
+
+      // ④ 资产区：角色 / 场景 / 道具 / 其他 四组并排，组内竖排（参考图与设定图同组相邻）
+      const assetGroups = new Map();
+      for (const n of assets) {
+        const k = arrangeAssetKind(n) || '其他';
+        if (!assetGroups.has(k)) assetGroups.set(k, []);
+        assetGroups.get(k).push(n);
+      }
+      const assetKeys = [...ARRANGE_ASSET_KINDS, '其他'].filter((k) => assetGroups.has(k));
+      if (assetKeys.length) {
+        let ax = maxRight + Math.round(GAP_X * 1.5);
+        for (const k of assetKeys) {
+          const list = assetGroups.get(k).sort(byYX);
+          let ay = TOP;
+          for (const n of list) { const it = push(n, ax, ay); ay = it.y + it.h + GAP_Y; }
+          ax += maxW(list, 360) + GAP_X;
+        }
+      }
+
+      // ⑤ 兜底列：镜头/音频/成片 + 未知类型
+      const trailGroups = new Map();
+      for (const n of trails) {
+        const t = ARRANGE_TRAIL_TYPES.includes(n.type) ? n.type : ('~' + String(n.type || 'text'));
+        if (!trailGroups.has(t)) trailGroups.set(t, []);
+        trailGroups.get(t).push(n);
+      }
+      const trailKeys = [...ARRANGE_TRAIL_TYPES.filter((k) => trailGroups.has(k)), ...[...trailGroups.keys()].filter((k) => k.startsWith('~')).sort()];
+      let tx = maxRight + Math.round(GAP_X * 1.5);
+      if (assetKeys.length) tx = maxRight + GAP_X;
+      for (const key of trailKeys) {
+        const list = trailGroups.get(key).sort(byYX);
+        let ty = TOP;
+        for (const n of list) { const it = push(n, tx, ty); ty = it.y + it.h + GAP_Y; }
+        tx += maxW(list, 360) + GAP_X;
+      }
+      return { plan, bands: bandKeys.length, assets: assets.length, trails: trails.length };
+    }
+
+    function autoArrangeNodes() {
+      const res = computeArrangePlan(Object.values(S.graph.nodes || {}), {});
+      if (!res.plan.length) { toast(T('arrangeNone')); return 0; }
       let moved = 0;
       update((s) => {
-        for (const p of plan) {
+        for (const p of res.plan) {
           const live = s.graph.nodes[p.id];
           if (!live) continue;
+          if (Math.round(Number(live.x) || 0) !== p.x || Math.round(Number(live.y) || 0) !== p.y) moved++;
           live.x = p.x; live.y = p.y;
-          if (p.moved) moved++;
         }
       });
       pushHistory();
       flushSave();
       try { fitView(); } catch { /* 视图失败不影响排布 */ }
-      toast(T('arrangeDone').replace('{n}', String(moved)));
+      toast(T('arrangeDone').replace('{n}', String(moved)).replace('{b}', String(res.bands)));
       return moved;
     }
 
@@ -29365,6 +29515,8 @@ const DIRECTOR_KEY_HELP = [
             nextNodePosClient, addNodeAt,
             // 拖拽落点建点（尊重鼠标位置）与自动排布（一类型一列）：供回归测试直接驱动
             addNodeAtPoint, autoArrangeNodes,
+            // 层级多列排布纯函数 + 分类器：场带/视频子列/资产分组，供回归测试直接驱动
+            computeArrangePlan, arrangeSceneTag, arrangeAssetKind,
             // 选区批量执行：按类型分组（空白右键菜单入口）+ 打开执行台，供回归测试直接驱动
             batchSelectionByType, openBatchConsole, batchExpand, batchExpandSelection, parseScriptScenes,
             // 把图设为/替换角色·道具·场景图（设定集 assetIds 绑定）+ 提示词复制，供回归测试直接驱动
