@@ -1564,6 +1564,34 @@ function revealCanvasInRight() {
       'bindNewBtn': '新建并设为{k}图',
       'bindSet': '已设为{k}图：{n}',
       'bindReplaced': '已替换{k}图：{n}',
+      'swapMenu': '换一张图…',
+      'swapTitle': '换图：选一张已有图片',
+      'swapHint': '把节点当前这张图换成资产库里选中的图（不重新生成）',
+      'swapEmpty': '资产库里还没有图片',
+      'swapLoading': '正在读取资产…',
+      'swapDone': '已换图',
+      'swapSyncBible': '节点名命中「{k}-」，已同步替换设定集条目',
+      'qcMenu': 'AI 质检（图与外观是否一致）',
+      'qcTitle': 'AI 质检',
+      'qcRun': '开始质检',
+      'qcRerun': '重新质检',
+      'qcRunning': '质检中…',
+      'qcNoAsset': '节点还没有图：先生成或换一张图',
+      'qcNoExpect': '缺少比对依据：设定集里没有这个角色/场景/道具的描述，提示词也是空的',
+      'qcScore': '一致度 {s}',
+      'qcVerdictPass': '一致',
+      'qcVerdictWarn': '需调整',
+      'qcVerdictFail': '不一致',
+      'qcIssues': '发现的问题',
+      'qcFixes': '修改建议',
+      'qcSugg': '改写后的提示词',
+      'qcApply': '把建议并入提示词',
+      'qcApplied': '建议已并入提示词',
+      'qcExpect': '比对依据',
+      'qcBadge': '质检 {s}',
+      'qcNoIssues': '没有发现明显不符',
+      'qcFailMsg': '质检失败：{e}',
+      'qcModelHint': '用当前文本模型看图比对（需支持视觉的模型）',
       'bindNeedAsset': '这个节点还没有图片：先生成或挂载图片再设定',
       'bindNeedProject': '请先打开一个画布项目',
       'copyPrompt': '复制提示词',
@@ -2975,6 +3003,34 @@ function revealCanvasInRight() {
       'bindNewBtn': 'Create & set as {k}',
       'bindSet': 'Set as {k}: {n}',
       'bindReplaced': 'Replaced {k}: {n}',
+      'swapMenu': 'Swap for another image…',
+      'swapTitle': 'Swap image: pick an existing one',
+      'swapHint': 'Replace this node image with one from the asset library (no generation)',
+      'swapEmpty': 'No images in the asset library yet',
+      'swapLoading': 'Loading assets…',
+      'swapDone': 'Image swapped',
+      'swapSyncBible': 'Label matched "{k}-", bible entry replaced too',
+      'qcMenu': 'AI QC (image vs. appearance)',
+      'qcTitle': 'AI QC',
+      'qcRun': 'Run QC',
+      'qcRerun': 'Re-run QC',
+      'qcRunning': 'Checking…',
+      'qcNoAsset': 'This node has no image yet — generate or swap one first',
+      'qcNoExpect': 'Nothing to compare against: no bible description and an empty prompt',
+      'qcScore': 'Match {s}',
+      'qcVerdictPass': 'Consistent',
+      'qcVerdictWarn': 'Needs work',
+      'qcVerdictFail': 'Inconsistent',
+      'qcIssues': 'Issues found',
+      'qcFixes': 'Suggested fixes',
+      'qcSugg': 'Rewritten prompt',
+      'qcApply': 'Merge suggestions into prompt',
+      'qcApplied': 'Suggestions merged into prompt',
+      'qcExpect': 'Reference (expected look)',
+      'qcBadge': 'QC {s}',
+      'qcNoIssues': 'No obvious mismatch found',
+      'qcFailMsg': 'QC failed: {e}',
+      'qcModelHint': 'Uses the current text model with vision (must be multimodal)',
       'bindNeedAsset': 'This node has no image yet — generate or attach one first',
       'bindNeedProject': 'Open a canvas project first',
       'copyPrompt': 'Copy prompt',
@@ -4093,7 +4149,38 @@ body[data-ds-dark-theme] .dshic-menu{border-color:var(--dsw-alias-border-l2);}
 .dshic-bind-pick:hover{border-color:var(--dsw-alias-brand-primary);}
 .dshic-bind-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dshic-bind-new{display:flex;gap:6px;align-items:center;}
-.dshic-bind-new .dshic-input{flex:1;}
+      .dshic-bind-new .dshic-input{flex:1;}
+      /* 换图（图片节点用已有资产替换当前图） */
+      .dshic-swap-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:52vh;overflow:auto;padding:2px;}
+      .dshic-swap-cell{position:relative;padding:0;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;overflow:hidden;
+        background:var(--dsw-alias-bg-layer-2);cursor:pointer;line-height:0;text-align:left;}
+      .dshic-swap-cell:hover{border-color:var(--dsw-alias-brand-primary);}
+      .dshic-swap-cell img{width:100%;height:92px;object-fit:cover;display:block;}
+      .dshic-swap-ph{height:92px;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1.2;
+        color:var(--dsw-alias-label-secondary);}
+      .dshic-swap-meta{padding:4px 6px;font-size:10.5px;line-height:1.35;color:var(--dsw-alias-label-secondary);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .dshic-swap-cur{position:absolute;top:4px;right:4px;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:999px;
+        background:var(--dsw-alias-brand-primary);color:#fff;}
+      /* AI 质检 */
+      .dshic-media-foot .dshic-mini.is-qc{font-variant-numeric:tabular-nums;}
+      .dshic-media-foot .dshic-mini.is-qc.is-pass{color:#3fb950;border-color:rgba(63,185,80,.55);}
+      .dshic-media-foot .dshic-mini.is-qc.is-warn{color:#d29922;border-color:rgba(210,153,34,.55);}
+      .dshic-media-foot .dshic-mini.is-qc.is-fail{color:#f85149;border-color:rgba(248,81,73,.55);}
+      .dshic-qc-body{display:flex;flex-direction:column;gap:10px;max-height:62vh;overflow:auto;}
+/* 质检弹窗顶部的被检图缩略图：让用户确认检的是哪一张 */
+.dshic-qc-thumbrow{display:flex;align-items:center;gap:8px;}
+.dshic-qc-thumb{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--dshic-line);background:var(--dshic-preview-bg);flex:none;}
+      .dshic-qc-score{display:flex;align-items:baseline;gap:8px;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;}
+      .dshic-qc-score.is-pass{color:#3fb950;}
+      .dshic-qc-score.is-warn{color:#d29922;}
+      .dshic-qc-score.is-fail{color:#f85149;}
+      .dshic-qc-score small{font-size:12px;font-weight:500;color:var(--dsw-alias-label-secondary);}
+      .dshic-qc-sec{font-size:11.5px;font-weight:600;color:var(--dsw-alias-label-secondary);margin-bottom:2px;}
+      .dshic-qc-list{margin:0;padding-left:18px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-primary);}
+      .dshic-qc-empty{font-size:12px;color:var(--dsw-alias-label-secondary);}
+      .dshic-qc-sugg{white-space:pre-wrap;font-size:11.5px;line-height:1.55;max-height:150px;overflow:auto;padding:8px 10px;
+        border-radius:8px;background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1);}
 /* —— 顶部一级 tab（画布 / 小说）：分段控件，与工具栏其它图标按钮同一视觉高度 —— */
 .dshic-apptabs{display:flex;align-items:center;gap:2px;padding:2px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);flex:none;}
 .dshic-apptab{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 14px;border:none;border-radius:8px;
@@ -4678,6 +4765,12 @@ body[data-ds-dark-theme] .dshic-storage-details{border-color:var(--dsw-alias-bor
 .dshic-media-empty-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
   background:var(--dshic-preview-bg);color:var(--dshic-ink3);}
 .dshic-media-empty-t{font-size:var(--dshic-empty-text);line-height:16px;text-align:center;padding:0 10px;}
+/* 空态快捷换图按钮：压在虚线框底边，不挡中间的生成提示 */
+.dshic-media-swapchip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;
+  display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;
+  border:1px solid var(--dshic-line);background:var(--dshic-card);color:var(--dshic-ink2);
+  font-size:11px;line-height:1.5;cursor:pointer;white-space:nowrap;}
+.dshic-media-swapchip:hover{color:var(--dshic-ink);border-color:var(--dshic-accent);}
 .dshic-media-err{position:absolute;left:0;right:0;bottom:0;padding:4px 8px;font-size:10.5px;line-height:14px;color:var(--dsw-alias-state-error-primary);background:var(--dsw-alias-bg-layer-1);max-height:42px;overflow:hidden;text-overflow:ellipsis;}
 /* 左上状态胶囊（原型 .status）：实底 / 圆点 6px；已生成绿、生成中蓝并 pulse */
 .dshic-status-badge{position:absolute;left:8px;top:8px;z-index:3;display:inline-flex;align-items:center;gap:5px;
@@ -6031,7 +6124,187 @@ body[data-ds-dark-theme] .dshic-pick-item.is-on{background:color-mix(in srgb,var
       vi.mode = viRouteMode(vi.level);
       return vi;
     }
-    /** 从设定图节点标签反查目标实体：角色-洛赋 设定图 → { kind:'character', name:'洛赋' }。 */
+    // ---------- 图片节点：换图（用资产库已有图片替换当前图，不重新生成） ----------
+    /** 宽松版标签反查：角色-洛烟 设定图 / 角色-洛烟 参考图 / 场景-寝殿 → { kind, name }。 */
+    function swapTargetFromLabel(label) {
+      const t = String(label || '').trim();
+      const m = /^(角色|场景|道具)\s*[-－]\s*(.+)$/.exec(t);
+      if (!m) return null;
+      const name = m[2].replace(/\s*(设定图|参考图|参考|三视图|图)\s*$/, '').trim();
+      if (!name) return null;
+      const kind = m[1] === '角色' ? 'character' : m[1] === '场景' ? 'scene' : 'prop';
+      return { kind: kind, name: name };
+    }
+    function openAssetSwap(nodeId) {
+      const nd = S.graph.nodes[nodeId];
+      if (!S.activeId) { toast(T('bindNeedProject')); return; }
+      if (!nd) return;
+      const tgt = swapTargetFromLabel(nd.data && nd.data.label);
+      update((s) => { s.assetSwap = { nodeId: nodeId, target: tgt, kind: tgt ? tgt.kind : null, busy: true, items: [], err: '' }; });
+      (async () => {
+        try {
+          const pid = S.activeId;
+          const own = await idbByProject(pid).catch(() => []);
+          const gen = pid === GENERAL_PID ? [] : await idbByProject(GENERAL_PID).catch(() => []);
+          const seen = new Set();
+          const items = [];
+          for (const r of [].concat(own, gen)) {
+            if (!r || !r.id || seen.has(r.id)) continue;
+            if (String(r.kind || '') !== 'image') continue;
+            seen.add(r.id); items.push(r);
+          }
+          update((s) => { if (s.assetSwap && s.assetSwap.nodeId === nodeId) { s.assetSwap.busy = false; s.assetSwap.items = items; } });
+        } catch (e) {
+          const msg = hostRpcErrText ? hostRpcErrText(e) : String((e && e.message) || e);
+          update((s) => { if (s.assetSwap) { s.assetSwap.busy = false; s.assetSwap.err = msg; } });
+        }
+      })();
+    }
+    function closeAssetSwap() { update((s) => { s.assetSwap = null; }); }
+    /** 直接把节点当前图换成资产库里的这张：旧图进 history、清错误态；标签指向设定集条目时同步替换条目图。 */
+    async function applyAssetSwap(nodeId, rec) {
+      const nd = S.graph.nodes[nodeId];
+      if (!nd || !rec || !rec.id) return;
+      const tgt = swapTargetFromLabel(nd.data && nd.data.label);
+      const prevId = nd.data && nd.data.assetId;
+      if (prevId === rec.id) { closeAssetSwap(); return; }
+      update((s) => {
+        const n2 = s.graph.nodes[nodeId];
+        if (!n2) return;
+        const d = n2.data || (n2.data = {});
+        const hist = Array.isArray(d.history) ? d.history.slice() : [];
+        if (prevId && !hist.some((x) => x && x.assetId === prevId)) hist.unshift({ assetId: prevId, at: Date.now() });
+        d.history = hist.filter((x) => x && x.assetId !== rec.id).slice(0, 12);
+        d.assetId = rec.id;
+        d.status = 'done';
+        d.error = '';
+        d.assetW = rec.width || d.assetW || 0;
+        d.assetH = rec.height || d.assetH || 0;
+        d.swappedAt = Date.now();
+        s.assetSwap = null;
+        s.assetsTick++;
+        bumpNodeRev(n2);
+      });
+      // 设定图节点换图 → 设定集条目也换成这张，否则铺开/分镜继承的还是旧形象
+      if (tgt) {
+        try {
+          await markAssetAsEntity(rec.id, tgt.kind, tgt.name);
+          bindAssetToBibleEntry(S.activeId, tgt.kind, tgt.name, rec.id, 'replace');
+        } catch { /* 绑定失败不影响换图本身 */ }
+      }
+      toast(T('swapDone') + (tgt ? ' · ' + T('swapSyncBible').replace('{k}', tgt.name) : ''));
+      pushHistory();
+      flushSave();
+    }
+
+    // ---------- 图片节点：AI 质检（视觉模型核对「图」与「期望外观」） ----------
+    /** 组装比对依据：设定集描述 + 视觉身份档案 + 生图提示词。空则提示用户先补描述。 */
+    function qcExpectedText(nd) {
+      const pid = S.activeId;
+      const zh = effLang() !== 'en';
+      const parts = [];
+      const tgt = nd && nd.data ? (viTargetFromLabel(nd.data.label) || swapTargetFromLabel(nd.data.label)) : null;
+      if (pid && tgt) {
+        const bible = loadBible(pid);
+        const idx = viEntryIndex(bible, tgt.kind, tgt.name);
+        if (idx >= 0) {
+          const entry = (bible[viKeyOf(tgt.kind)] || [])[idx] || {};
+          const desc = String(entry.desc || '').trim();
+          if (desc) parts.push((zh ? '设定集·' : 'Bible · ') + tgt.name + (zh ? '：' : ': ') + desc);
+          const compiled = String(compileViPrompt(Object.assign({}, entry, { kind: tgt.kind }), bible, zh) || '').trim();
+          if (compiled) parts.push((zh ? '视觉身份档案：' : 'Visual identity: ') + compiled);
+        }
+      }
+      const prompt = String((nd && nd.data && nd.data.prompt) || '').trim();
+      if (prompt) parts.push((zh ? '生图提示词：' : 'Generation prompt: ') + prompt);
+      return parts.join('\n\n').trim();
+    }
+    function qcVerdictOf(score) { return score >= 80 ? 'pass' : score >= 60 ? 'warn' : 'fail'; }
+    function parseQcJson(text) {
+      const s = String(text || '').replace(/```json/gi, '').replace(/```/g, '').trim();
+      const a = s.indexOf('{');
+      const b = s.lastIndexOf('}');
+      let j = null;
+      if (a >= 0 && b > a) { try { j = JSON.parse(s.slice(a, b + 1)); } catch { j = null; } }
+      if (!j || typeof j !== 'object') return null;
+      const num = Number(j.score);
+      const score = Number.isFinite(num) ? Math.max(0, Math.min(100, Math.round(num))) : null;
+      const arr = (v) => (Array.isArray(v) ? v : (typeof v === 'string' && v.trim() ? [v] : []))
+        .map((x) => String(x == null ? '' : x).trim()).filter(Boolean).slice(0, 12);
+      const vr = String(j.verdict || '').toLowerCase();
+      const verdict = ['pass', 'warn', 'fail'].indexOf(vr) >= 0 ? vr : qcVerdictOf(score == null ? 0 : score);
+      return {
+        score: score, verdict: verdict,
+        issues: arr(j.issues), fixes: arr(j.fixes),
+        suggestedPrompt: String(j.suggestedPrompt || j.prompt || '').trim(),
+      };
+    }
+    async function runImageQc(nodeId) {
+      const nd = S.graph.nodes[nodeId];
+      if (!nd || !nd.data || !nd.data.assetId) { toast(T('qcNoAsset')); return null; }
+      const expect = qcExpectedText(nd);
+      if (!expect) { toast(T('qcNoExpect')); return null; }
+      const zh = effLang() !== 'en';
+      update((s) => { s.qcPanel = { nodeId: nodeId, busy: true, expect: expect, err: '', result: null, applied: false }; });
+      try {
+        const blob = await assetBlob(nd.data.assetId);
+        if (!blob) throw new Error(T('qcNoAsset'));
+        const dataUrl = await blobToDataUrlScaled(blob, 1024, 0.88);
+        const system = zh
+          ? '你是短剧美术质检员。把「期望外观」与图片逐条比对，只输出 JSON，不要解释文字。'
+          : 'You are a short-drama art QC reviewer. Compare the expected look with the image. Output JSON only.';
+        const user = (zh
+          ? '期望外观（来自设定集 / 视觉身份档案 / 生图提示词，图片必须符合这些事实）：\n' + expect
+            + '\n\n请核验这张图，严格输出 JSON：{"score":0到100的整数一致度,"verdict":"pass|warn|fail","issues":["具体不符点，例如发色/发式/年龄/服饰/道具/场景陈设"],"fixes":["可执行的修改建议"],"suggestedPrompt":"按期望外观改写、能让下一次生成更贴合的完整提示词"}'
+          : 'Expected look (from bible / visual identity / generation prompt; the image must match):\n' + expect
+            + '\n\nCheck the image and output JSON only: {"score":0-100 integer,"verdict":"pass|warn|fail","issues":["concrete mismatches such as hair color, hairstyle, age, costume, props, set dressing"],"fixes":["actionable fixes"],"suggestedPrompt":"full prompt rewritten so the next render matches the expected look"}');
+        const out = await aiComplete({ system: system, user: user, images: [{ dataUrl: dataUrl, name: 'qc.png' }] });
+        const res = parseQcJson(out);
+        if (!res) throw new Error(zh ? '模型没有返回可解析的 JSON' : 'model returned no parseable JSON');
+        res.at = Date.now();
+        update((s) => {
+          const n2 = s.graph.nodes[nodeId];
+          if (n2) { n2.data.qc = res; bumpNodeRev(n2); }
+          if (s.qcPanel && s.qcPanel.nodeId === nodeId) { s.qcPanel.busy = false; s.qcPanel.result = res; s.qcPanel.expect = expect; }
+        });
+        pushHistory();
+        flushSave();
+        return res;
+      } catch (e) {
+        const msg = hostRpcErrText ? hostRpcErrText(e) : String((e && e.message) || e);
+        update((s) => { if (s.qcPanel && s.qcPanel.nodeId === nodeId) { s.qcPanel.busy = false; s.qcPanel.err = msg; } });
+        toast(T('qcFailMsg').replace('{e}', msg));
+        return null;
+      }
+    }
+    function openImageQc(nodeId) {
+      const nd = S.graph.nodes[nodeId];
+      if (!nd) return;
+      const prev = (nd.data && nd.data.qc) || null;
+      update((s) => { s.qcPanel = { nodeId: nodeId, busy: false, expect: qcExpectedText(nd), err: '', result: prev, applied: false }; });
+      if (!prev) runImageQc(nodeId);
+    }
+    function closeImageQc() { update((s) => { s.qcPanel = null; }); }
+    /** 把质检给出的改写提示词并入节点提示词（追加，不覆盖用户原文）。 */
+    function applyQcPrompt() {
+      const p = S.qcPanel;
+      if (!p || !p.result) return;
+      const add = String(p.result.suggestedPrompt || '').trim();
+      if (!add) return;
+      update((s) => {
+        const n2 = s.graph.nodes[p.nodeId];
+        if (!n2) return;
+        const cur = String(n2.data.prompt || '').trim();
+        n2.data.prompt = cur ? cur + '\n\n' + add : add;
+        n2.data.qcAppliedAt = Date.now();
+        bumpNodeRev(n2);
+        if (s.qcPanel) s.qcPanel.applied = true;
+      });
+      toast(T('qcApplied'));
+      pushHistory();
+      flushSave();
+    }
+        /** 从设定图节点标签反查目标实体：角色-洛赋 设定图 → { kind:'character', name:'洛赋' }。 */
     function viTargetFromLabel(label) {
       const m = /^(角色|场景|道具)-(.+?)\s*设定图$/.exec(String(label || '').trim());
       if (!m) return null;
@@ -14878,6 +15151,19 @@ function queueThumb(assetId) {
       const m = arrangeLabelOf(n).match(/段\s*(\d+)\s*\/\s*(\d+)/);
       return m ? Number(m[1]) : 0;
     }
+    /** 资产组内排序用名：剥掉「角色-」「道具-」「… 参考」等前后缀，便于同实体相邻、顺序稳定。 */
+    function arrangeAssetName(n) {
+      const label = arrangeLabelOf(n);
+      const t = label.replace(/^(角色|场景|道具)\s*[-—－_\s]*/, '')
+        .replace(/\s*(设定图|参考图|参考|三视图|图)$/, '').trim();
+      return t || label;
+    }
+    /** 资产排序等级：设定图(0) → 其它已有图(1) → 还没出图(2)，让「待补」集中到底部。 */
+    function arrangeAssetRank(n) {
+      const d = (n && n.data) || {};
+      if (!d.assetId) return 2;
+      return /设定图\s*$/.test(arrangeLabelOf(n)) ? 0 : 1;
+    }
 
     /** 纯函数：算层级多列排布计划（不写状态，便于回归测试直接驱动）。
      *  返回 { plan:[{id,x,y,w,h}], bands, assets, trails }。 */
@@ -14991,7 +15277,9 @@ function queueThumb(assetId) {
             for (const n of b.other) { const it = push(n, colX('text'), oy); oy = it.y + it.h + GAP_Y; }
             hOther = oy - GAP_Y - (y + (hText ? hText + GAP_Y : 0));
           }
-          y += Math.max(hText, hSb, hVid, hOther, 0) + BAND_GAP;
+          // 空带（既有场号却一个节点都没进来）不推进 y，避免留下 80px 空洞
+          const bandH = Math.max(hText, hSb, hVid, hOther, 0);
+          if (bandH > 0) y += bandH + BAND_GAP;
         }
       }
 
@@ -15006,7 +15294,9 @@ function queueThumb(assetId) {
       if (assetKeys.length) {
         let ax = maxRight + Math.round(GAP_X * 1.5);
         for (const k of assetKeys) {
-          const list = assetGroups.get(k).sort(byYX);
+          const list = assetGroups.get(k).sort((a, b) => (arrangeAssetRank(a) - arrangeAssetRank(b))
+            || arrangeAssetName(a).localeCompare(arrangeAssetName(b), 'zh')
+            || byYX(a, b));
           let ay = TOP;
           for (const n of list) { const it = push(n, ax, ay); ay = it.y + it.h + GAP_Y; }
           ax += maxW(list, 360) + GAP_X;
@@ -17555,6 +17845,15 @@ function queueThumb(assetId) {
                 h('span', { className: 'dshic-media-empty-ic' }, Ic('plus', 17)),
                 h('span', { className: 'dshic-media-empty-t' }, T(kind === 'video' ? 'clickToGenVideo' : 'clickToGenImage')))
             : null,
+          // 空态快捷换图：设定图还没生成时，也能直接把资产库里已有的图挂上来
+          (!done && kind === 'image')
+            ? h('button', {
+                key: 'swapchip', type: 'button', className: 'dshic-media-swapchip', title: T('swapHint'),
+                'data-action': 'image-swap',
+                onPointerDown: (e) => e.stopPropagation(),
+                onClick: (e) => { e.stopPropagation(); openAssetSwap(n.id); },
+              }, Ic('image', 11), T('swapMenu').replace('…', ''))
+            : null,
           // 右下角动作区：放大/全屏键紧贴分辨率条（同一行横向排列）
           // 播放中（控件条出现）时隐藏，避免压住进度条。
           (done && !(kind === 'video' && vidMode === 'controls'))
@@ -17615,6 +17914,22 @@ function queueThumb(assetId) {
                     onClick: () => setToolsOpen(true),
                   }, Ic('spark', 11), T('imgTools'))
                 : null,
+              kind === 'image'
+                ? h('button', {
+                    type: 'button', className: 'dshic-mini is-ghost', title: T('swapHint'),
+                    'data-action': 'image-swap',
+                    onPointerDown: (e) => e.stopPropagation(),
+                    onClick: () => openAssetSwap(n.id),
+                  }, Ic('image', 11), T('swapMenu').replace('…', ''))
+                : null,
+              kind === 'image'
+                ? h('button', {
+                    type: 'button', className: 'dshic-mini is-ghost is-qc' + (n.data.qc ? ' is-' + String(n.data.qc.verdict || 'warn') : ''), title: T('qcModelHint'),
+                    'data-action': 'image-qc',
+                    onPointerDown: (e) => e.stopPropagation(),
+                    onClick: () => openImageQc(n.id),
+                  }, Ic('eye', 11), (n.data.qc && n.data.qc.score != null) ? T('qcBadge').replace('{s}', String(n.data.qc.score)) : T('qcTitle'))
+                : null,
               h('button', {
                 type: 'button', className: 'dshic-mini is-ghost', disabled: running,
                 onPointerDown: (e) => e.stopPropagation(),
@@ -17645,7 +17960,8 @@ function queueThumb(assetId) {
       const hist = Array.isArray(d.history) ? d.history.map((x) => (x && x.assetId) || '').join(',') : '';
       return [n.id, n.type, n.w, n.h, n.x, n.y, n.z, d.label, d.status, d.statusText, d.progress, d.error,
         d.assetId, d.lastAssetId, d.lastAssetVideo, d.ratio, d.assetW, d.assetH, d.imageCount, d.aiStatus, hist,
-        d.running].join('|');
+        d.running,
+        (d.qc ? [d.qc.score, d.qc.verdict, d.qc.at].join(':') : '')].join('|');
     }
     /** MediaNodeBody memo 比较：相同渲染签名 + 相同连线签名 → 跳过重渲染（选中/悬浮等全树状态不会带动媒体重渲染）。 */
     function mediaNodePropsEqual(prev, next) {
@@ -18870,8 +19186,14 @@ function queueThumb(assetId) {
           ...(expandTargets.length
             ? [{ label: T(expandKey).replace('{n}', String(expandTargets.length)), icon: 'expandAll', fn: () => { batchExpandSelection(expandTargets.map((x) => x.id)); } }]
             : []),
+          ...(n.type === 'image'
+            ? [{ label: T('swapMenu'), icon: 'image', fn: () => openAssetSwap(n.id) }]
+            : []),
           ...(n.type === 'image' && n.data && n.data.assetId
             ? [{ label: T('bindMenu'), icon: 'tag', fn: () => openEntityPicker({ assetId: n.data.assetId, nodeId: n.id }) }]
+            : []),
+          ...(n.type === 'image' && n.data && n.data.assetId
+            ? [{ label: T('qcMenu'), icon: 'eye', fn: () => openImageQc(n.id) }]
             : []),
           ...(n.type === 'image' || n.type === 'video'
             ? [{ label: T('copyPrompt'), icon: 'copy', fn: () => copyNodePrompt(n) }]
@@ -25926,6 +26248,109 @@ const DIRECTOR_KEY_HELP = [
         ));
     }
 
+    /** 换图弹窗：资产库里已有图片的网格，点一张即替换节点当前图（旧图进历史）。 */
+    function SwapCell({ rec, isCurrent, disabled, onPick }) {
+      const url = useAssetUrl(rec.id);
+      return h('button', {
+        type: 'button', className: 'dshic-swap-cell', disabled: disabled,
+        title: String(rec.prompt || rec.name || '').slice(0, 300),
+        onClick: () => onPick(rec),
+      },
+        url ? h('img', { src: url, alt: String(rec.name || '') }) : h('div', { className: 'dshic-swap-ph' }, T('swapLoading')),
+        isCurrent ? h('span', { className: 'dshic-swap-cur' }, '\u2713') : null,
+        h('div', { className: 'dshic-swap-meta' }, String(rec.name || rec.id || '')),
+      );
+    }
+    function SwapAssetModal() {
+      const p = S.assetSwap || {};
+      const nd = S.graph.nodes[p.nodeId] || null;
+      const curId = String((nd && nd.data && nd.data.assetId) || '');
+      const items = Array.isArray(p.items) ? p.items : [];
+      const busy = !!p.busy;
+      useEffect(() => {
+        const fn = (e) => { if (e.key === 'Escape') closeAssetSwap(); };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+      }, []);
+      return h('div', { className: 'dshic-modal-overlay', onPointerDown: (e) => { if (e.target === e.currentTarget) closeAssetSwap(); } },
+        h('div', { className: 'dshic-modal' },
+          h('div', { className: 'dshic-modal-title' }, T('swapTitle')),
+          h('div', { className: 'dshic-hint' }, (nd ? String((nd.data && nd.data.label) || '') + ' · ' : '') + T('swapHint')),
+          busy
+            ? h('div', { className: 'dshic-hint' }, T('swapLoading'))
+            : (items.length
+              ? h('div', { className: 'dshic-swap-list' }, items.map((rec) => h(SwapCell, {
+                  key: rec.id, rec: rec, isCurrent: rec.id === curId, disabled: busy,
+                  onPick: (r) => { applyAssetSwap(p.nodeId, r); },
+                })))
+              : h('div', { className: 'dshic-hint' }, T('swapEmpty'))),
+          p.err ? h('div', { className: 'dshic-modal-warn' }, String(p.err)) : null,
+          h('div', { className: 'dshic-modal-actions' },
+            h('button', { type: 'button', className: 'dshic-btn dshic-btn-outline', onClick: closeAssetSwap }, T('cancel'))),
+        ));
+    }
+
+    /** AI 质检结果面板：分数 / 问题 / 建议 / 改写提示词（可一键并入节点提示词）。 */
+    function QcModal() {
+      const p = S.qcPanel || {};
+      const r = p.result || null;
+      const v = r && r.verdict ? String(r.verdict) : 'warn';
+      const vKey = v === 'pass' ? 'qcVerdictPass' : v === 'fail' ? 'qcVerdictFail' : 'qcVerdictWarn';
+      const busy = !!p.busy;
+      const nd = S.graph.nodes[p.nodeId] || null;
+      const thumb = useAssetUrl(nd && nd.data ? nd.data.assetId : null);
+      useEffect(() => {
+        const fn = (e) => { if (e.key === 'Escape') closeImageQc(); };
+        window.addEventListener('keydown', fn);
+        return () => window.removeEventListener('keydown', fn);
+      }, []);
+      const body = busy
+        ? h('div', { className: 'dshic-qc-body' }, h('div', { className: 'dshic-qc-score' }, T('qcRunning')))
+        : (r
+          ? h('div', { className: 'dshic-qc-body' },
+              h('div', { className: 'dshic-qc-score is-' + v },
+                r.score == null ? '\u2014' : String(r.score),
+                h('small', {}, '/100 · ' + T(vKey))),
+              h('div', {},
+                h('div', { className: 'dshic-qc-sec' }, T('qcIssues')),
+                (Array.isArray(r.issues) && r.issues.length
+                  ? h('ul', { className: 'dshic-qc-list' }, r.issues.map((t, i) => h('li', { key: 'i' + i }, String(t))))
+                  : h('div', { className: 'dshic-qc-empty' }, T('qcNoIssues')))),
+              (Array.isArray(r.fixes) && r.fixes.length
+                ? h('div', {},
+                    h('div', { className: 'dshic-qc-sec' }, T('qcFixes')),
+                    h('ul', { className: 'dshic-qc-list' }, r.fixes.map((t, i) => h('li', { key: 'f' + i }, String(t)))))
+                : null),
+              (r.suggestedPrompt
+                ? h('div', {},
+                    h('div', { className: 'dshic-qc-sec' }, T('qcSugg')),
+                    h('pre', { className: 'dshic-qc-sugg' }, String(r.suggestedPrompt)))
+                : null),
+              (p.expect
+                ? h('div', {},
+                    h('div', { className: 'dshic-qc-sec' }, T('qcExpect')),
+                    h('pre', { className: 'dshic-qc-sugg' }, String(p.expect)))
+                : null))
+          : h('div', { className: 'dshic-qc-body' }, h('div', { className: 'dshic-qc-empty' }, String(p.err || T('qcNoExpect')))));
+      return h('div', { className: 'dshic-modal-overlay', onPointerDown: (e) => { if (e.target === e.currentTarget) closeImageQc(); } },
+        h('div', { className: 'dshic-modal' },
+          h('div', { className: 'dshic-modal-title' }, T('qcTitle')),
+          h('div', { className: 'dshic-hint' }, T('qcModelHint')),
+          thumb
+            ? h('div', { className: 'dshic-qc-thumbrow' },
+                h('img', { className: 'dshic-qc-thumb', src: thumb, alt: '' }),
+                h('span', { className: 'dshic-hint' }, (nd && nd.data ? String(nd.data.label || '') : '')))
+            : null,
+          body,
+          h('div', { className: 'dshic-modal-actions' },
+            h('button', { type: 'button', className: 'dshic-btn dshic-btn-outline', disabled: busy, onClick: closeImageQc }, T('cancel')),
+            h('button', { type: 'button', className: 'dshic-btn dshic-btn-outline', disabled: busy, onClick: () => runImageQc(p.nodeId) }, r ? T('qcRerun') : T('qcRun')),
+            (r && r.suggestedPrompt)
+              ? h('button', { type: 'button', className: 'dshic-btn dshic-primary', disabled: busy || !!p.applied, onClick: applyQcPrompt }, p.applied ? T('qcApplied') : T('qcApply'))
+              : null),
+        ));
+    }
+
     /** 删除资产确认框：与项目删除同一套交互 —— 名字可选中，手打确认，不做一键填入。 */
     function DeleteAssetModal({ target, name = '', setName = () => {}, onCancel = () => {}, onConfirm = () => {} }) {
       const matched = String(name || '').trim() === (target.name || '') && String(name || '').trim() !== '';
@@ -28616,6 +29041,8 @@ const DIRECTOR_KEY_HELP = [
         h(ProjectNameDialog),    // 新建 / 重命名项目（空名校验）
         S.menu ? h(ContextMenu, { menu: S.menu }) : null,
         S.entityPicker ? h(EntityPicker) : null,
+        S.assetSwap ? h(SwapAssetModal) : null,
+        S.qcPanel ? h(QcModal) : null,
         S.viPanel ? h(ViPanel) : null,
         h(ProductionConsole),
         S.lightbox ? h(Lightbox) : null,
@@ -29516,7 +29943,7 @@ const DIRECTOR_KEY_HELP = [
             // 拖拽落点建点（尊重鼠标位置）与自动排布（一类型一列）：供回归测试直接驱动
             addNodeAtPoint, autoArrangeNodes,
             // 层级多列排布纯函数 + 分类器：场带/视频子列/资产分组，供回归测试直接驱动
-            computeArrangePlan, arrangeSceneTag, arrangeAssetKind,
+            computeArrangePlan, arrangeSceneTag, arrangeAssetKind, arrangeAssetName, arrangeAssetRank,
             // 选区批量执行：按类型分组（空白右键菜单入口）+ 打开执行台，供回归测试直接驱动
             batchSelectionByType, openBatchConsole, batchExpand, batchExpandSelection, parseScriptScenes,
             // 把图设为/替换角色·道具·场景图（设定集 assetIds 绑定）+ 提示词复制，供回归测试直接驱动
